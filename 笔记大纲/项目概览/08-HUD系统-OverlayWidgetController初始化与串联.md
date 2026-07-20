@@ -63,13 +63,14 @@
 
 UE 引擎的 GameMode 有默认类配置：
 
-| 默认类 | 用途 |
-|--------|------|
-| Default Pawn Class | 默认角色 |
-| Player Controller Class | 玩家控制器 |
-| **HUD Class** | **屏幕 UI 管理** ← 本次使用 |
+| 默认类                     | 用途                  |
+| ----------------------- | ------------------- |
+| Default Pawn Class      | 默认角色                |
+| Player Controller Class | 玩家控制器               |
+| **HUD Class**           | **屏幕 UI 管理** ← 本次使用 |
 
 `AHUD` 是 UE 内置的基类，专门负责：
+
 - 将 Widget 绘制到屏幕上
 - 管理 HUD 相关的生命周期
 - 提供 `GetWorld()` 等上下文
@@ -114,12 +115,12 @@ private:
 
 **设计要点**：
 
-| 变量 | 类型 | 用途 |
-|------|------|------|
-| `OverlayWidgetClass` | `TSubclassOf<UAuraUserWidget>` | 蓝图配置：用哪个 Widget 蓝图 |
+| 变量                             | 类型                                      | 用途                     |
+| ------------------------------ | --------------------------------------- | ---------------------- |
+| `OverlayWidgetClass`           | `TSubclassOf<UAuraUserWidget>`          | 蓝图配置：用哪个 Widget 蓝图     |
 | `OverlayWidgetControllerClass` | `TSubclassOf<UOverlayWidgetController>` | 蓝图配置：用哪个 Controller 蓝图 |
-| `OverlayWidget` | `TObjectPtr<UAuraUserWidget>` | 运行时实例缓存 |
-| `OverlayWidgetController` | `TObjectPtr<UOverlayWidgetController>` | 运行时单例缓存 |
+| `OverlayWidget`                | `TObjectPtr<UAuraUserWidget>`           | 运行时实例缓存                |
+| `OverlayWidgetController`      | `TObjectPtr<UOverlayWidgetController>`  | 运行时单例缓存                |
 
 > 💡 `TSubclassOf` 用于在蓝图中选择类，`TObjectPtr` 用于持有运行时实例。两个 `EditAnywhere` 变量让美术/策划在蓝图编辑器中即可切换不同的 Widget 和 Controller。
 
@@ -191,13 +192,13 @@ struct FWidgetControllerParams
 
 **设计要点**：
 
-| 特性 | 说明 |
-|------|------|
-| `USTRUCT(BlueprintType)` | 结构体可在蓝图中作为变量类型使用 |
-| 默认构造函数 | UE 反射系统要求，必须有 |
-| 带参构造函数 | 使用**成员初始化列表**（冒号语法），高效初始化 |
-| `= nullptr` | 所有指针初始化为空，避免编译器警告 |
-| `BlueprintReadWrite` | 蓝图可读写，方便调试和配置 |
+| 特性                       | 说明                        |
+| ------------------------ | ------------------------- |
+| `USTRUCT(BlueprintType)` | 结构体可在蓝图中作为变量类型使用          |
+| 默认构造函数                   | UE 反射系统要求，必须有             |
+| 带参构造函数                   | 使用**成员初始化列表**（冒号语法），高效初始化 |
+| `= nullptr`              | 所有指针初始化为空，避免编译器警告         |
+| `BlueprintReadWrite`     | 蓝图可读写，方便调试和配置             |
 
 ### 3.3 SetWidgetControllerParams — 基类赋值函数
 
@@ -243,11 +244,11 @@ class AURA_API UOverlayWidgetController : public UAuraWidgetController
 
 ### 4.2 为什么用子类而非直接用基类
 
-| 原因 | 说明 |
-|------|------|
-| **扩展性** | 覆盖层未来需要特有的功能（如属性监听、广播），放在子类中不污染基类 |
+| 原因       | 说明                                                  |
+| -------- | --------------------------------------------------- |
+| **扩展性**  | 覆盖层未来需要特有的功能（如属性监听、广播），放在子类中不污染基类                   |
 | **类型安全** | `AAuraHUD` 明确持有 `UOverlayWidgetController*`，编译时类型检查 |
-| **蓝图支持** | 可以为覆盖层创建专门的蓝图子类，在蓝图中配置覆盖层特有的数据 |
+| **蓝图支持** | 可以为覆盖层创建专门的蓝图子类，在蓝图中配置覆盖层特有的数据                      |
 
 ---
 
@@ -376,11 +377,11 @@ void AAuraCharacter::InitAbilityActorInfo()
 
 ### 6.2 为什么选择 InitAbilityActorInfo 作为调用点
 
-| 条件 | 说明 |
-|------|------|
-| **四个关键变量都已就绪** | `AuraPlayerController`、`AuraPlayerState`、`ASC`、`AttributeSet` 都在此函数中获取 |
-| **服务器 + 客户端都覆盖** | `PossessedBy`（服务器）和 `OnRep_PlayerState`（客户端）都会调用此函数 |
-| **时机正确** | Controller 已分配、PlayerState 已复制、ASC 已初始化 |
+| 条件               | 说明                                                                     |
+| ---------------- | ---------------------------------------------------------------------- |
+| **四个关键变量都已就绪**   | `AuraPlayerController`、`AuraPlayerState`、`ASC`、`AttributeSet` 都在此函数中获取 |
+| **服务器 + 客户端都覆盖** | `PossessedBy`（服务器）和 `OnRep_PlayerState`（客户端）都会调用此函数                    |
+| **时机正确**         | Controller 已分配、PlayerState 已复制、ASC 已初始化                                |
 
 ### 6.3 完整调用流程图
 
@@ -413,11 +414,11 @@ void AAuraCharacter::InitAbilityActorInfo()
 
 这是本次提交中**最重要的多人游戏知识点**：
 
-| 场景 | PlayerController 是否有效 |
-|------|--------------------------|
-| 服务器上的所有角色 | ✅ 有效（服务器持有所有玩家的控制器） |
-| 客户端上**本地控制**的角色 | ✅ 有效 |
-| 客户端上**其他玩家**的角色副本 | ❌ **nullptr** |
+| 场景                | PlayerController 是否有效 |
+| ----------------- | --------------------- |
+| 服务器上的所有角色         | ✅ 有效（服务器持有所有玩家的控制器）   |
+| 客户端上**本地控制**的角色   | ✅ 有效                  |
+| 客户端上**其他玩家**的角色副本 | ❌ **nullptr**         |
 
 > 🔑 **核心规则**：在多人游戏中，每个客户端只能访问自己本地玩家的 PlayerController。其他玩家的角色副本在该客户端上 `GetController()` 返回 `nullptr`。
 
@@ -438,11 +439,11 @@ if (AAuraPlayerController* AuraPlayerController =
 // check(AuraPlayerController);  // 客户端上其他玩家的角色会在这里崩溃！
 ```
 
-| 判断标准 | 使用 `check` | 使用 `if` |
-|----------|-------------|----------|
-| 变量**永远不应**为 null | ✅ | ❌ |
-| 变量**在某些合法情况下**可能为 null | ❌ | ✅ |
-| 示例 | `check(AuraPlayerState)` — PS 在所有机器上都存在 | `if (AuraPlayerController)` — PC 在客户端非本地角色上为 null |
+| 判断标准                   | 使用 `check`                              | 使用 `if`                                           |
+| ---------------------- | --------------------------------------- | ------------------------------------------------- |
+| 变量**永远不应**为 null       | ✅                                       | ❌                                                 |
+| 变量**在某些合法情况下**可能为 null | ❌                                       | ✅                                                 |
+| 示例                     | `check(AuraPlayerState)` — PS 在所有机器上都存在 | `if (AuraPlayerController)` — PC 在客户端非本地角色上为 null |
 
 ### 7.3 AuraPlayerController::BeginPlay 的修复
 
@@ -466,33 +467,33 @@ if (Subsystem)  // ✅ 只在有效时执行
 
 ## 八、新增/修改文件清单
 
-| 文件 | 操作 | 说明 |
-|------|------|------|
-| `Public/UI/HUD/AuraHUD.h` | **新增** | 自定义 HUD 类声明 |
-| `Private/UI/HUD/AuraHUD.cpp` | **新增** | HUD 实现：InitOverlay + GetOverlayWidgetController |
-| `Public/UI/WidgetController/OverlayWidgetController.h` | **新增** | 覆盖层专用 WidgetController 子类 |
-| `Private/UI/WidgetController/OverlayWidgetController.cpp` | **新增** | 覆盖层控制器实现（目前为空壳） |
-| `Public/UI/WidgetController/AuraWidgetController.h` | **修改** | 新增 `FWidgetControllerParams` 结构体 + `SetWidgetControllerParams` 函数 |
-| `Private/UI/WidgetController/AuraWidgetController.cpp` | **修改** | 实现 `SetWidgetControllerParams` |
-| `Private/Character/AuraCharacter.cpp` | **修改** | 在 `InitAbilityActorInfo` 末尾调用 `InitOverlay` |
-| `Private/Player/AuraPlayerController.cpp` | **修改** | 将 `check(Subsystem)` 改为 `if (Subsystem)` |
+| 文件                                                        | 操作     | 说明                                                                |
+| --------------------------------------------------------- | ------ | ----------------------------------------------------------------- |
+| `Public/UI/HUD/AuraHUD.h`                                 | **新增** | 自定义 HUD 类声明                                                       |
+| `Private/UI/HUD/AuraHUD.cpp`                              | **新增** | HUD 实现：InitOverlay + GetOverlayWidgetController                   |
+| `Public/UI/WidgetController/OverlayWidgetController.h`    | **新增** | 覆盖层专用 WidgetController 子类                                         |
+| `Private/UI/WidgetController/OverlayWidgetController.cpp` | **新增** | 覆盖层控制器实现（目前为空壳）                                                   |
+| `Public/UI/WidgetController/AuraWidgetController.h`       | **修改** | 新增 `FWidgetControllerParams` 结构体 + `SetWidgetControllerParams` 函数 |
+| `Private/UI/WidgetController/AuraWidgetController.cpp`    | **修改** | 实现 `SetWidgetControllerParams`                                    |
+| `Private/Character/AuraCharacter.cpp`                     | **修改** | 在 `InitAbilityActorInfo` 末尾调用 `InitOverlay`                       |
+| `Private/Player/AuraPlayerController.cpp`                 | **修改** | 将 `check(Subsystem)` 改为 `if (Subsystem)`                          |
 
 ---
 
 ## 九、知识点总结
 
-| 序号 | 知识点 | 说明 |
-|------|--------|------|
-| 1 | **HUD 系统** | `AHUD` 是 UE 管理屏幕 UI 的专用类，通过 GameMode 配置 |
-| 2 | **TSubclassOf** | 模板类，用于在蓝图中选择 UClass 类型（编译时类型安全） |
-| 3 | **NewObject** | 创建 UObject 的正确方式（不能用 `new`），需要指定 Outer |
-| 4 | **FWidgetControllerParams** | 参数结构体模式，将多个初始化参数打包，简化函数签名 |
-| 5 | **成员初始化列表** | C++ 构造函数中 `: var(value)` 的语法，比在函数体内赋值更高效 |
-| 6 | **checkf** | 带格式化消息的断言，失败时输出自定义错误信息 |
-| 7 | **单例模式** | `GetOverlayWidgetController` 确保全局只有一个 OverlayWidgetController |
-| 8 | **多人游戏 PC 有效性** | 客户端上非本地控制角色的 PlayerController 为 `nullptr` |
-| 9 | **check vs if** | 永远不应为 null → `check`；可能合法为 null → `if` |
-| 10 | **MVC 串联** | HUD 作为"组装工厂"，将 Widget（View）和 WidgetController（Controller）绑定 |
+| 序号  | 知识点                         | 说明                                                            |
+| --- | --------------------------- | ------------------------------------------------------------- |
+| 1   | **HUD 系统**                  | `AHUD` 是 UE 管理屏幕 UI 的专用类，通过 GameMode 配置                       |
+| 2   | **TSubclassOf**             | 模板类，用于在蓝图中选择 UClass 类型（编译时类型安全）                               |
+| 3   | **NewObject**               | 创建 UObject 的正确方式（不能用 `new`），需要指定 Outer                        |
+| 4   | **FWidgetControllerParams** | 参数结构体模式，将多个初始化参数打包，简化函数签名                                     |
+| 5   | **成员初始化列表**                 | C++ 构造函数中 `: var(value)` 的语法，比在函数体内赋值更高效                      |
+| 6   | **checkf**                  | 带格式化消息的断言，失败时输出自定义错误信息                                        |
+| 7   | **单例模式**                    | `GetOverlayWidgetController` 确保全局只有一个 OverlayWidgetController |
+| 8   | **多人游戏 PC 有效性**             | 客户端上非本地控制角色的 PlayerController 为 `nullptr`                     |
+| 9   | **check vs if**             | 永远不应为 null → `check`；可能合法为 null → `if`                        |
+| 10  | **MVC 串联**                  | HUD 作为"组装工厂"，将 Widget（View）和 WidgetController（Controller）绑定   |
 
 ---
 

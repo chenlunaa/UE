@@ -1,3 +1,4 @@
+<a id="section-1"></a>
 # UE5 学习笔记 — 属性菜单（AttributeMenu）专题
 
 > 🎬 对应视频：第9章 9.1 ~ 9.10  
@@ -6,63 +7,66 @@
 
 ---
 
+<a id="section-2"></a>
 ## 目录
 
-- [UE5 学习笔记 — 属性菜单（AttributeMenu）专题](#ue5-学习笔记--属性菜单attributemenu专题)
-  - [目录](#目录)
-  - [一、整体设计与规划（9.1）](#一整体设计与规划91)
-    - [1.1 属性菜单的视觉布局](#11-属性菜单的视觉布局)
-    - [1.2 组件拆分策略](#12-组件拆分策略)
-    - [1.3 主要属性 vs 次要属性的设计差异](#13-主要属性-vs-次要属性的设计差异)
-  - [二、WBP\_FramedValue — 带边框数值组件（9.2）](#二wbp_framedvalue--带边框数值组件92)
-    - [2.1 组件结构](#21-组件结构)
-    - [2.2 蓝图变量与函数](#22-蓝图变量与函数)
-    - [2.3 材质与样式设置](#23-材质与样式设置)
-  - [三、WBP\_TextValueRow — 文本值行组件（9.3）](#三wbp_textvaluerow--文本值行组件93)
-    - [3.1 组件结构](#31-组件结构)
-    - [3.2 水平布局与间隔器](#32-水平布局与间隔器)
-    - [3.3 Named Slot — 为子类化预留扩展点](#33-named-slot--为子类化预留扩展点)
-  - [四、WBP\_TextValueButtonRow — 文本值按钮行组件（9.4）](#四wbp_textvaluebuttonrow--文本值按钮行组件94)
-    - [4.1 继承 WBP\_TextValueRow](#41-继承-wbp_textvaluerow)
-    - [4.2 按钮叠加层设计](#42-按钮叠加层设计)
-    - [4.3 按钮四种状态样式](#43-按钮四种状态样式)
-  - [五、WBP\_AttributeMenu — 属性菜单主面板（9.5）](#五wbp_attributemenu--属性菜单主面板95)
-    - [5.1 Wrap Box 布局系统](#51-wrap-box-布局系统)
-    - [5.2 标题与副标题](#52-标题与副标题)
-    - [5.3 主要属性区域（带按钮行）](#53-主要属性区域带按钮行)
-    - [5.4 次要属性区域（Scroll Box 滚动列表）](#54-次要属性区域scroll-box-滚动列表)
-    - [5.5 背景与边框美化](#55-背景与边框美化)
-  - [六、WBP\_Button — 通用按钮基类（9.6）](#六wbp_button--通用按钮基类96)
-    - [6.1 为什么需要按钮基类](#61-为什么需要按钮基类)
-    - [6.2 尺寸框 + 覆盖层架构](#62-尺寸框--覆盖层架构)
-    - [6.3 参数化设计：画笔 / 字体 / 文本](#63-参数化设计画笔--字体--文本)
-    - [6.4 暴露属性的眼睛图标机制](#64-暴露属性的眼睛图标机制)
-  - [七、WBP\_WideButton — 宽按钮子类（9.7）](#七wbp_widebutton--宽按钮子类97)
-    - [7.1 继承 WBP\_Button 并覆盖默认值](#71-继承-wbp_button-并覆盖默认值)
-    - [7.2 替换宽按钮纹理资源](#72-替换宽按钮纹理资源)
-    - [7.3 添加到 Overlay 覆盖层](#73-添加到-overlay-覆盖层)
-  - [八、打开属性菜单（9.8）](#八打开属性菜单98)
-    - [8.1 按钮点击事件绑定](#81-按钮点击事件绑定)
-    - [8.2 创建 Widget 并添加到视口](#82-创建-widget-并添加到视口)
-    - [8.3 视口定位与内边距调整](#83-视口定位与内边距调整)
-    - [8.4 打开时禁用按钮防止重复打开](#84-打开时禁用按钮防止重复打开)
-  - [九、关闭属性菜单与事件分发器（9.9）](#九关闭属性菜单与事件分发器99)
-    - [9.1 关闭按钮的点击绑定](#91-关闭按钮的点击绑定)
-    - [9.2 RemoveFromParent 销毁 Widget](#92-removefromparent-销毁-widget)
-    - [9.3 Event Dispatcher 跨蓝图通信](#93-event-dispatcher-跨蓝图通信)
-    - [9.4 循环依赖问题与解耦方案](#94-循环依赖问题与解耦方案)
-    - [9.5 创建/销毁 vs 显示/隐藏 的取舍](#95-创建销毁-vs-显示隐藏-的取舍)
-  - [十、数据架构设计 — 属性信息传递系统（9.10）](#十数据架构设计--属性信息传递系统910)
-    - [10.1 蛮力方法 vs 通用委托方法](#101-蛮力方法-vs-通用委托方法)
-    - [10.2 基于 GameplayTag 的属性标识方案](#102-基于-gameplaytag-的属性标识方案)
-    - [10.3 AttributeInfo DataAsset 设计](#103-attributeinfo-dataasset-设计)
-    - [10.4 完整数据流架构图](#104-完整数据流架构图)
-    - [10.5 后续待实现步骤](#105-后续待实现步骤)
+- [UE5 学习笔记 — 属性菜单（AttributeMenu）专题](#section-1)
+  - [目录](#section-2)
+  - [一、整体设计与规划（9.1）](#section-3)
+    - [1.1 属性菜单的视觉布局](#section-4)
+    - [1.2 组件拆分策略](#section-5)
+    - [1.3 主要属性 vs 次要属性的设计差异](#section-6)
+  - [二、WBP\_FramedValue — 带边框数值组件（9.2）](#section-7)
+    - [2.1 组件结构](#section-8)
+    - [2.2 蓝图变量与函数](#section-9)
+    - [2.3 材质与样式设置](#section-10)
+  - [三、WBP\_TextValueRow — 文本值行组件（9.3）](#section-11)
+    - [3.1 组件结构](#section-12)
+    - [3.2 水平布局与间隔器](#section-13)
+    - [3.3 Named Slot — 为子类化预留扩展点](#section-14)
+  - [四、WBP\_TextValueButtonRow — 文本值按钮行组件（9.4）](#section-15)
+    - [4.1 继承 WBP\_TextValueRow](#section-16)
+    - [4.2 按钮叠加层设计](#section-17)
+    - [4.3 按钮四种状态样式](#section-18)
+  - [五、WBP\_AttributeMenu — 属性菜单主面板（9.5）](#section-19)
+    - [5.1 Wrap Box 布局系统](#section-20)
+    - [5.2 标题与副标题](#section-21)
+    - [5.3 主要属性区域（带按钮行）](#section-22)
+    - [5.4 次要属性区域（Scroll Box 滚动列表）](#section-23)
+    - [5.5 背景与边框美化](#section-24)
+  - [六、WBP\_Button — 通用按钮基类（9.6）](#section-25)
+    - [6.1 为什么需要按钮基类](#section-26)
+    - [6.2 尺寸框 + 覆盖层架构](#section-27)
+    - [6.3 参数化设计：画笔 / 字体 / 文本](#section-28)
+    - [6.4 暴露属性的眼睛图标机制](#section-29)
+  - [七、WBP\_WideButton — 宽按钮子类（9.7）](#section-30)
+    - [7.1 继承 WBP\_Button 并覆盖默认值](#section-31)
+    - [7.2 替换宽按钮纹理资源](#section-32)
+    - [7.3 添加到 Overlay 覆盖层](#section-33)
+  - [八、打开属性菜单（9.8）](#section-34)
+    - [8.1 按钮点击事件绑定](#section-35)
+    - [8.2 创建 Widget 并添加到视口](#section-36)
+    - [8.3 视口定位与内边距调整](#section-37)
+    - [8.4 打开时禁用按钮防止重复打开](#section-38)
+  - [九、关闭属性菜单与事件分发器（9.9）](#section-39)
+    - [9.1 关闭按钮的点击绑定](#section-40)
+    - [9.2 RemoveFromParent 销毁 Widget](#section-41)
+    - [9.3 Event Dispatcher 跨蓝图通信](#section-42)
+    - [9.4 循环依赖问题与解耦方案](#section-43)
+    - [9.5 创建/销毁 vs 显示/隐藏 的取舍](#section-44)
+  - [十、数据架构设计 — 属性信息传递系统（9.10）](#section-45)
+    - [10.1 蛮力方法 vs 通用委托方法](#section-46)
+    - [10.2 基于 GameplayTag 的属性标识方案](#section-47)
+    - [10.3 AttributeInfo DataAsset 设计](#section-48)
+    - [10.4 完整数据流架构图](#section-49)
+    - [10.5 后续待实现步骤](#section-50)
 
 ---
 
+<a id="section-3"></a>
 ## 一、整体设计与规划（9.1）
 
+<a id="section-4"></a>
 ### 1.1 属性菜单的视觉布局
 
 属性菜单的整体布局从上到下为：
@@ -94,6 +98,7 @@
 └──────────────────────────────┘
 ```
 
+<a id="section-5"></a>
 ### 1.2 组件拆分策略
 
 采用**自底向上**的组件化设计，从最小粒度开始构建：
@@ -114,6 +119,7 @@ WBP_FramedValue ──被包含──▶ WBP_TextValueRow ──被继承──�
                           WBP_AttributeMenu ◀── 组装 ── WBP_Button/WBP_WideButton
 ```
 
+<a id="section-6"></a>
 ### 1.3 主要属性 vs 次要属性的设计差异
 
 | | 主要属性 (Primary) | 次要属性 (Secondary) |
@@ -127,8 +133,10 @@ WBP_FramedValue ──被包含──▶ WBP_TextValueRow ──被继承──�
 
 ---
 
+<a id="section-7"></a>
 ## 二、WBP_FramedValue — 带边框数值组件（9.2）
 
+<a id="section-8"></a>
 ### 2.1 组件结构
 
 这是整个属性菜单的最小原子组件，负责在一个带边框的框内显示数值。
@@ -148,6 +156,7 @@ SizeBox_Root (尺寸框，控制整体大小)
 - **Image_Border**：使用 `Border_One` 纹理，**绘制方式设为 Border**（而非 Image），通过 Margin 控制边框粗细
 - **TextBlock_Value**：显示数值如 `99`，字体 Pirata One，字号约 17，描边 1px
 
+<a id="section-9"></a>
 ### 2.2 蓝图变量与函数
 
 **变量（分类：Frame Properties）**：
@@ -173,6 +182,7 @@ Event Pre Construct
     └─ UpdateBackgroundBrush() → SetBrush(BackgroundBrush)
 ```
 
+<a id="section-10"></a>
 ### 2.3 材质与样式设置
 
 - **流动UI背景材质** (`MI_FlowingUIBackground`)：
@@ -183,8 +193,10 @@ Event Pre Construct
 
 ---
 
+<a id="section-11"></a>
 ## 三、WBP_TextValueRow — 文本值行组件（9.3）
 
+<a id="section-12"></a>
 ### 3.1 组件结构
 
 ```
@@ -196,6 +208,7 @@ SizeBox_Root (尺寸框)
     └── NamedSlot (命名槽位，为子类预留扩展点)
 ```
 
+<a id="section-13"></a>
 ### 3.2 水平布局与间隔器
 
 | 元素 | 对齐方式 | 说明 |
@@ -219,6 +232,7 @@ SizeBox_Root (尺寸框)
 
 > 默认宽度 720 经过多次调整确定，需容纳最长属性名（如 "Crit Resistance"）+ 间隔 + 数值框。
 
+<a id="section-14"></a>
 ### 3.3 Named Slot — 为子类化预留扩展点
 
 **Named Slot（命名槽位）** 是 UMG 中实现组件继承扩展的关键机制：
@@ -240,12 +254,15 @@ SizeBox_Root (尺寸框)
 
 ---
 
+<a id="section-15"></a>
 ## 四、WBP_TextValueButtonRow — 文本值按钮行组件（9.4）
 
+<a id="section-16"></a>
 ### 4.1 继承 WBP_TextValueRow
 
 创建时选择父类为 `WBP_TextValueRow`（而非默认的 UserWidget），继承其所有控件和逻辑。
 
+<a id="section-17"></a>
 ### 4.2 按钮叠加层设计
 
 在父类的 Named Slot 中添加：
@@ -262,6 +279,7 @@ NamedSlot
 - **Button**：同样 40×40，居中叠加在边框之上
 - **加号文本**：居中显示，字体 Rubato 或 Amaranth，描边 1px
 
+<a id="section-18"></a>
 ### 4.3 按钮四种状态样式
 
 按钮控件需要为四种状态分别设置样式，且都改为 **Draw As = Image**（不使用默认的圆角框）：
@@ -277,8 +295,10 @@ NamedSlot
 
 ---
 
+<a id="section-19"></a>
 ## 五、WBP_AttributeMenu — 属性菜单主面板（9.5）
 
+<a id="section-20"></a>
 ### 5.1 Wrap Box 布局系统
 
 **Wrap Box** 是实现从上到下自动排列的关键控件：
@@ -296,6 +316,7 @@ Wrap Box 的行为规则：
 - **强制换行技巧**：将元素（如标题 TextBlock）宽度设得比 Wrap Box 还大（如 1000），它就会独占一行
 - **内边距**：Wrap Box 四边 Padding 设为 25，避免内容贴边
 
+<a id="section-21"></a>
 ### 5.2 标题与副标题
 
 | 元素 | 字体 | 大小 | 字间距 | 对齐 |
@@ -306,6 +327,7 @@ Wrap Box 的行为规则：
 
 > 标题通过设置 Fill 空白 + 水平居中实现居中效果。
 
+<a id="section-22"></a>
 ### 5.3 主要属性区域（带按钮行）
 
 使用 `WBP_TextValueButtonRow` × 4，每个之间用 Spacer（高度约 5~15）分隔：
@@ -326,6 +348,7 @@ Vigor Row             (WBP_TextValueButtonRow)
 
 > 属性点行放在主要属性上方，用于显示剩余可分配点数。
 
+<a id="section-23"></a>
 ### 5.4 次要属性区域（Scroll Box 滚动列表）
 
 ```
@@ -346,6 +369,7 @@ SizeBox_Scroll (固定高度，如 ~300px)
 - SizeBox 设置固定 Height Override（如 ~300px）
 - 当内容超出 SizeBox 高度时，右侧自动出现滚动条
 
+<a id="section-24"></a>
 ### 5.5 背景与边框美化
 
 ```
@@ -361,12 +385,15 @@ Overlay_Root
 
 ---
 
+<a id="section-25"></a>
 ## 六、WBP_Button — 通用按钮基类（9.6）
 
+<a id="section-26"></a>
 ### 6.1 为什么需要按钮基类
 
 属性菜单中多处需要按钮：关闭按钮、加号按钮、属性菜单入口按钮。与其每次都重新搭建按钮结构，不如创建一个**可参数化的通用按钮基类**，通过继承和覆盖默认值来复用。
 
+<a id="section-27"></a>
 ### 6.2 尺寸框 + 覆盖层架构
 
 ```
@@ -377,6 +404,7 @@ SizeBox_Root (40×40 默认)
     └── TextBlock (按钮文字，居中)
 ```
 
+<a id="section-28"></a>
 ### 6.3 参数化设计：画笔 / 字体 / 文本
 
 **变量清单（分类：Button Properties）**：
@@ -415,6 +443,7 @@ Event Pre Construct
     └─ UpdateText()
 ```
 
+<a id="section-29"></a>
 ### 6.4 暴露属性的眼睛图标机制
 
 在变量面板中点击变量旁的**眼睛图标（Expose）**，使变量在子类或实例的 Details 面板中可编辑：
@@ -426,8 +455,10 @@ Event Pre Construct
 
 ---
 
+<a id="section-30"></a>
 ## 七、WBP_WideButton — 宽按钮子类（9.7）
 
+<a id="section-31"></a>
 ### 7.1 继承 WBP_Button 并覆盖默认值
 
 创建时选择父类为 `WBP_Button`，然后在子类中覆盖默认变量值：
@@ -441,6 +472,7 @@ Event Pre Construct
 | `FontSize` | 16 | 22 |
 | `LetterSpacing` | 0 | 200 |
 
+<a id="section-32"></a>
 ### 7.2 替换宽按钮纹理资源
 
 宽按钮纹理自带边框，因此：
@@ -453,6 +485,7 @@ Event Pre Construct
 
 > 资源路径：`Assets/UI/Button_Red/WideButton_Red/`
 
+<a id="section-33"></a>
 ### 7.3 添加到 Overlay 覆盖层
 
 在 `WBP_Overlay` 中拖入 `WBP_WideButton`，设置按钮文本为 "ATTRIBUTES"，作为打开属性菜单的入口按钮。
@@ -461,8 +494,10 @@ Event Pre Construct
 
 ---
 
+<a id="section-34"></a>
 ## 八、打开属性菜单（9.8）
 
+<a id="section-35"></a>
 ### 8.1 按钮点击事件绑定
 
 在 `WBP_Overlay` 的 **Event Construct** 中绑定：
@@ -481,6 +516,7 @@ Event Construct
 
 **关键点**：`WBP_WideButton` 继承自 `WBP_Button`，其内部按钮控件名为 `Button`。需要通过 `Get Button` 节点获取内部按钮后才能绑定点击事件。
 
+<a id="section-36"></a>
 ### 8.2 创建 Widget 并添加到视口
 
 ```
@@ -497,6 +533,7 @@ Create Widget
 
 > `Get Player Controller (Index 0)` 是 GameplayStatics 函数，获取本地玩家控制器。
 
+<a id="section-37"></a>
 ### 8.3 视口定位与内边距调整
 
 如果直接 Add to Viewport，Widget 会**填满整个视口**。解决方案：
@@ -511,14 +548,17 @@ Create Widget
 
 视口位置设为 (50, 50) 可产生偏移效果，避免贴边。
 
+<a id="section-38"></a>
 ### 8.4 打开时禁用按钮防止重复打开
 
 点击打开后立即调用 `Set Enabled = false`，防止玩家在菜单已打开时再次点击。
 
 ---
 
+<a id="section-39"></a>
 ## 九、关闭属性菜单与事件分发器（9.9）
 
+<a id="section-40"></a>
 ### 9.1 关闭按钮的点击绑定
 
 在 `WBP_AttributeMenu` 的 Event Construct 中：
@@ -531,10 +571,12 @@ Event Construct
             └─ Assign OnClicked → Remove from Parent
 ```
 
+<a id="section-41"></a>
 ### 9.2 RemoveFromParent 销毁 Widget
 
 `Remove from Parent` 节点将 Widget 从视口中移除并销毁。
 
+<a id="section-42"></a>
 ### 9.3 Event Dispatcher 跨蓝图通信
 
 **问题**：属性菜单关闭后，Overlay 中的 "ATTRIBUTES" 按钮仍然是禁用状态，无法再次打开。
@@ -560,6 +602,7 @@ Event Construct
            └─ 重新启用按钮 (Set Enabled = true)
 ```
 
+<a id="section-43"></a>
 ### 9.4 循环依赖问题与解耦方案
 
 | 方案 | 描述 | 问题 |
@@ -569,6 +612,7 @@ Event Construct
 
 > **设计原则**：AttributeMenu 不依赖 Overlay。它只负责在关闭时广播 `AttributeMenuClosed` 事件，由外部（Overlay）自行决定如何响应。
 
+<a id="section-44"></a>
 ### 9.5 创建/销毁 vs 显示/隐藏 的取舍
 
 | 方案 | 优点 | 缺点 |
@@ -580,8 +624,10 @@ Event Construct
 
 ---
 
+<a id="section-45"></a>
 ## 十、数据架构设计 — 属性信息传递系统（9.10）
 
+<a id="section-46"></a>
 ### 10.1 蛮力方法 vs 通用委托方法
 
 **蛮力方法（不推荐）**：
@@ -620,6 +666,7 @@ ASC 广播任意属性变化
     → 匹配则更新显示
 ```
 
+<a id="section-47"></a>
 ### 10.2 基于 GameplayTag 的属性标识方案
 
 每个属性关联一个唯一的 **GameplayTag**：
@@ -636,6 +683,7 @@ ASC 广播任意属性变化
 - 可在 C++ 和蓝图中统一使用
 - 支持 `MatchesTag()` 等层级匹配查询
 
+<a id="section-48"></a>
 ### 10.3 AttributeInfo DataAsset 设计
 
 创建一个 **DataAsset** 类 `UAuraAttributeInfo`：
@@ -652,6 +700,7 @@ ASC 广播任意属性变化
 | `AttributeDescription` | FText | 悬停提示描述 |
 | `AttributeValue` | Float | 当前数值 |
 
+<a id="section-49"></a>
 ### 10.4 完整数据流架构图
 
 ```
@@ -702,6 +751,7 @@ ASC 广播任意属性变化
 ⑨ 匹配的行从结构体提取数值/名称，更新 UI
 ```
 
+<a id="section-50"></a>
 ### 10.5 后续待实现步骤
 
 根据 9.10 的规划，后续需要完成：

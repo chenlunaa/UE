@@ -8,27 +8,28 @@
 
 ## 目录
 
-- [一、效果演员（AuraEffectActor）的设计思路](#一效果演员auraeffectactor的设计思路)
-- [二、C++ 类创建与组件配置](#二c-类创建与组件配置)
-  - [2.1 头文件定义](#21-头文件定义)
-  - [2.2 构造函数：静态网格 + 球体碰撞](#22-构造函数静态网格--球体碰撞)
-- [三、重叠回调绑定机制](#三重叠回调绑定机制)
-  - [3.1 委托签名的查找方法](#31-委托签名的查找方法)
-  - [3.2 BeginPlay 中绑定委托](#32-beginplay-中绑定委托)
-- [四、通过 IAbilitySystemInterface 访问属性集](#四通过-iabilitysysteminterface-访问属性集)
-  - [4.1 接口转换获取 ASC](#41-接口转换获取-asc)
-  - [4.2 获取指定类型的属性集](#42-获取指定类型的属性集)
-- [五、const_cast 的临时方案与局限性](#五const_cast-的临时方案与局限性)
-  - [5.1 为什么要用 const_cast](#51-为什么要用-const_cast)
-  - [5.2 当前方案的三大局限](#52-当前方案的三大局限)
-  - [5.3 TODO 标记：未来改用 GameplayEffect](#53-todo-标记未来改用-gameplayeffect)
-- [六、蓝图化：创建生命药水](#六蓝图化创建生命药水)
-- [七、控制台验证属性变化](#七控制台验证属性变化)
-- [八、新增文件清单](#八新增文件清单)
-- [九、知识点总结](#九知识点总结)
+- [一、效果演员（AuraEffectActor）的设计思路](#section-3)
+- [二、C++ 类创建与组件配置](#section-4)
+  - [2.1 头文件定义](#section-5)
+  - [2.2 构造函数：静态网格 + 球体碰撞](#section-6)
+- [三、重叠回调绑定机制](#section-7)
+  - [3.1 委托签名的查找方法](#section-8)
+  - [3.2 BeginPlay 中绑定委托](#section-9)
+- [四、通过 IAbilitySystemInterface 访问属性集](#section-10)
+  - [4.1 接口转换获取 ASC](#section-11)
+  - [4.2 获取指定类型的属性集](#section-12)
+- [五、const_cast 的临时方案与局限性](#section-13)
+  - [5.1 为什么要用 const_cast](#section-14)
+  - [5.2 当前方案的三大局限](#section-15)
+  - [5.3 TODO 标记：未来改用 GameplayEffect](#section-16)
+- [六、蓝图化：创建生命药水](#section-17)
+- [七、控制台验证属性变化](#section-18)
+- [八、新增文件清单](#section-19)
+- [九、知识点总结](#section-20)
 
 ---
 
+<a id="section-3"></a>
 ## 一、效果演员（AuraEffectActor）的设计思路
 
 在游戏中经常需要**可拾取的对象**来影响玩家属性（如血瓶、魔瓶）。本节创建一个通用的 `AAuraEffectActor` 类：
@@ -41,8 +42,10 @@
 
 ---
 
+<a id="section-4"></a>
 ## 二、C++ 类创建与组件配置
 
+<a id="section-5"></a>
 ### 2.1 头文件定义
 
 ```cpp
@@ -78,6 +81,7 @@ private:
 };
 ```
 
+<a id="section-6"></a>
 ### 2.2 构造函数：静态网格 + 球体碰撞
 
 ```cpp
@@ -101,8 +105,10 @@ Root (UStaticMeshComponent "Mesh")
 
 ---
 
+<a id="section-7"></a>
 ## 三、重叠回调绑定机制
 
+<a id="section-8"></a>
 ### 3.1 委托签名的查找方法
 
 在 UE 中，要绑定一个函数到组件的重叠委托，必须知道**正确的函数签名**。查找方法：
@@ -118,6 +124,7 @@ void(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
      bool bFromSweep, const FHitResult& SweepResult)
 ```
 
+<a id="section-9"></a>
 ### 3.2 BeginPlay 中绑定委托
 
 ```cpp
@@ -137,8 +144,10 @@ void AAuraEffectActor::BeginPlay()
 
 ---
 
+<a id="section-10"></a>
 ## 四、通过 IAbilitySystemInterface 访问属性集
 
+<a id="section-11"></a>
 ### 4.1 接口转换获取 ASC
 
 ```cpp
@@ -168,6 +177,7 @@ OtherActor  →  Cast<IAbilitySystemInterface>  →  GetAbilitySystemComponent()
                                               UAuraAttributeSet*
 ```
 
+<a id="section-12"></a>
 ### 4.2 获取指定类型的属性集
 
 ```cpp
@@ -180,8 +190,10 @@ GetAttributeSet(UAuraAttributeSet::StaticClass())
 
 ---
 
+<a id="section-13"></a>
 ## 五、const_cast 的临时方案与局限性
 
+<a id="section-14"></a>
 ### 5.1 为什么要用 const_cast
 
 `GetAttributeSet` 返回 `const UAuraAttributeSet*`，但我们需要调用 `SetHealth()` 来修改值：
@@ -198,6 +210,7 @@ Destroy();  // 拾取后销毁
 
 > ⚠️ **const_cast 是 C++ 中应该尽量避免的操作**，它破坏了 GAS 的封装保护。
 
+<a id="section-15"></a>
 ### 5.2 当前方案的三大局限
 
 | 局限 | 说明 |
@@ -207,6 +220,7 @@ Destroy();  // 拾取后销毁
 | **破坏封装** | const_cast 绕过了 GAS 的保护机制 |
 | **不可复用** | 每种药水都需要单独写逻辑 |
 
+<a id="section-16"></a>
 ### 5.3 TODO 标记：未来改用 GameplayEffect
 
 ```cpp
@@ -222,6 +236,7 @@ Destroy();  // 拾取后销毁
 
 ---
 
+<a id="section-17"></a>
 ## 六、蓝图化：创建生命药水
 
 1. 在 `Content/Blueprints/Actor/` 下创建蓝图类 `BP_HealthPotion`
@@ -231,6 +246,7 @@ Destroy();  // 拾取后销毁
 
 ---
 
+<a id="section-18"></a>
 ## 七、控制台验证属性变化
 
 运行游戏后，按 `~` 打开控制台，输入：
@@ -243,6 +259,7 @@ showdebug abilitysystem
 
 ---
 
+<a id="section-19"></a>
 ## 八、新增文件清单
 
 | 文件 | 说明 |
@@ -253,6 +270,7 @@ showdebug abilitysystem
 
 ---
 
+<a id="section-20"></a>
 ## 九、知识点总结
 
 | 知识点 | 说明 |

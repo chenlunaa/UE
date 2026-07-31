@@ -1,3 +1,4 @@
+<a id="section-1"></a>
 # UE5 学习笔记 — 第四次提交（续）
 
 > 📦 Commit `3686998`：将 PlayerState 与 Aura 关联起来（设置复制模式 + 初始化 AbilityActorInfo）  
@@ -6,39 +7,42 @@
 
 ---
 
+<a id="section-2"></a>
 ## 目录
 
-- [UE5 学习笔记 — 第四次提交（续）](#ue5-学习笔记--第四次提交续)
-  - [目录](#目录)
-  - [一、GameplayEffect 复制模式](#一gameplayeffect-复制模式)
-    - [1.1 什么是复制模式？](#11-什么是复制模式)
-    - [1.2 三种复制模式详解](#12-三种复制模式详解)
-    - [1.3 本项目中的选择](#13-本项目中的选择)
-    - [1.4 代码实现](#14-代码实现)
-  - [二、Owner Actor 与 Avatar Actor](#二owner-actor-与-avatar-actor)
-    - [2.1 两个角色的概念](#21-两个角色的概念)
-    - [2.2 敌人：Owner == Avatar](#22-敌人owner--avatar)
-    - [2.3 玩家：Owner ≠ Avatar](#23-玩家owner--avatar)
-  - [三、InitAbilityActorInfo — 初始化 ASC 的演员信息](#三initabilityactorinfo--初始化-asc-的演员信息)
-    - [3.1 为什么需要调用这个函数？](#31-为什么需要调用这个函数)
-    - [3.2 敌人的初始化（BeginPlay 中）](#32-敌人的初始化beginplay-中)
-    - [3.3 玩家的初始化（PossessedBy + OnRep\_PlayerState）](#33-玩家的初始化possessedby--onrep_playerstate)
-    - [3.4 为什么玩家需要两个入口？](#34-为什么玩家需要两个入口)
-    - [3.5 DRY 原则：提取 InitAbilityActorInfo 私有函数](#35-dry-原则提取-initabilityactorinfo-私有函数)
-  - [四、PlayerState 与 Character 的指针桥接](#四playerstate-与-character-的指针桥接)
-    - [4.1 问题回顾](#41-问题回顾)
-    - [4.2 桥接代码](#42-桥接代码)
-    - [4.3 桥接后的完整数据流](#43-桥接后的完整数据流)
-  - [五、混合复制模式的注意事项](#五混合复制模式的注意事项)
-    - [5.1 Owner Actor 的 Owner 必须是 Controller](#51-owner-actor-的-owner-必须是-controller)
-    - [5.2 PlayerState 天然满足条件](#52-playerstate-天然满足条件)
-  - [六、新增 / 修改文件清单](#六新增--修改文件清单)
-  - [七、知识点总结](#七知识点总结)
+- [UE5 学习笔记 — 第四次提交（续）](#section-1)
+  - [目录](#section-2)
+  - [一、GameplayEffect 复制模式](#section-3)
+    - [1.1 什么是复制模式？](#section-4)
+    - [1.2 三种复制模式详解](#section-5)
+    - [1.3 本项目中的选择](#section-6)
+    - [1.4 代码实现](#section-7)
+  - [二、Owner Actor 与 Avatar Actor](#section-8)
+    - [2.1 两个角色的概念](#section-9)
+    - [2.2 敌人：Owner == Avatar](#section-10)
+    - [2.3 玩家：Owner ≠ Avatar](#section-11)
+  - [三、InitAbilityActorInfo — 初始化 ASC 的演员信息](#section-12)
+    - [3.1 为什么需要调用这个函数？](#section-13)
+    - [3.2 敌人的初始化（BeginPlay 中）](#section-14)
+    - [3.3 玩家的初始化（PossessedBy + OnRep\_PlayerState）](#section-15)
+    - [3.4 为什么玩家需要两个入口？](#section-16)
+    - [3.5 DRY 原则：提取 InitAbilityActorInfo 私有函数](#section-17)
+  - [四、PlayerState 与 Character 的指针桥接](#section-18)
+    - [4.1 问题回顾](#section-19)
+    - [4.2 桥接代码](#section-20)
+    - [4.3 桥接后的完整数据流](#section-21)
+  - [五、混合复制模式的注意事项](#section-22)
+    - [5.1 Owner Actor 的 Owner 必须是 Controller](#section-23)
+    - [5.2 PlayerState 天然满足条件](#section-24)
+  - [六、新增 / 修改文件清单](#section-25)
+  - [七、知识点总结](#section-26)
 
 ---
 
+<a id="section-3"></a>
 ## 一、GameplayEffect 复制模式
 
+<a id="section-4"></a>
 ### 1.1 什么是复制模式？
 
 在多人游戏中，**GameplayEffect（GE）** 用于修改属性值（如造成伤害、治疗、Buff/Debuff）。当服务器上发生 GE 时，客户端也需要知道这些变化（比如更新血条显示）。
@@ -51,6 +55,7 @@
 AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::XXX);
 ```
 
+<a id="section-5"></a>
 ### 1.2 三种复制模式详解
 
 | 模式          | 枚举值       | GameplayEffect 复制 | GameplayCue 复制 | GameplayTag 复制 | 适用场景     |
@@ -72,6 +77,7 @@ AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::XXX);
 
 > ⚠️ **重要注释（来自引擎源码）**：`Minimal` 模式不适用于"拥有的 ASC"（owned ASC）。对于玩家拥有的 ASC，请使用 `Mixed` 代替。
 
+<a id="section-6"></a>
 ### 1.3 本项目中的选择
 
 根据 Epic 官方推荐和课程规则：
@@ -81,6 +87,7 @@ AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::XXX);
 | **玩家控制的角色**（AAuraCharacter） | `Mixed`   | ASC 在 PlayerState 上，玩家需要看到自己的属性变化 |
 | **AI 控制的敌人**（AAuraEnemy）    | `Minimal` | ASC 在 Character 上，敌人属性不需要同步给客户端   |
 
+<a id="section-7"></a>
 ### 1.4 代码实现
 
 **AAuraPlayerState 构造函数（玩家 → Mixed）：**
@@ -116,8 +123,10 @@ AAuraEnemy::AAuraEnemy()
 
 ---
 
+<a id="section-8"></a>
 ## 二、Owner Actor 与 Avatar Actor
 
+<a id="section-9"></a>
 ### 2.1 两个角色的概念
 
 `UAbilitySystemComponent` 内部维护两个重要的 Actor 引用：
@@ -133,6 +142,7 @@ AAuraEnemy::AAuraEnemy()
 void InitAbilityActorInfo(AActor* InOwnerActor, AActor* InAvatarActor);
 ```
 
+<a id="section-10"></a>
 ### 2.2 敌人：Owner == Avatar
 
 对于 AI 控制的敌人，ASC 直接放在 Character 上：
@@ -151,6 +161,7 @@ AbilitySystemComponent->InitAbilityActorInfo(this, this);
 //                                       （同一个 Actor）
 ```
 
+<a id="section-11"></a>
 ### 2.3 玩家：Owner ≠ Avatar
 
 对于玩家控制的角色，ASC 放在 PlayerState 上：
@@ -172,8 +183,10 @@ AuraPlayerState->GetAbilitySystemComponent()->InitAbilityActorInfo(AuraPlayerSta
 
 ---
 
+<a id="section-12"></a>
 ## 三、InitAbilityActorInfo — 初始化 ASC 的演员信息
 
+<a id="section-13"></a>
 ### 3.1 为什么需要调用这个函数？
 
 在 GAS 框架内部，很多功能需要知道"谁是 ASC 的所有者"和"谁是 ASC 的化身"。例如：
@@ -184,6 +197,7 @@ AuraPlayerState->GetAbilitySystemComponent()->InitAbilityActorInfo(AuraPlayerSta
 
 如果不调用 `InitAbilityActorInfo`，这些功能将无法正常工作。
 
+<a id="section-14"></a>
 ### 3.2 敌人的初始化（BeginPlay 中）
 
 敌人是最简单的情况——ASC 就在自己身上，在 `BeginPlay` 中直接初始化即可：
@@ -209,6 +223,7 @@ void AAuraEnemy::BeginPlay()
 - `BeginPlay` 时，敌人的 Controller（AIController）已经设置好了
 - Owner 和 Avatar 都是 `this`，不需要等待任何外部依赖
 
+<a id="section-15"></a>
 ### 3.3 玩家的初始化（PossessedBy + OnRep_PlayerState）
 
 玩家的情况复杂得多，需要在**两个不同的入口**调用初始化：
@@ -248,6 +263,7 @@ void AAuraCharacter::InitAbilityActorInfo()
 }
 ```
 
+<a id="section-16"></a>
 ### 3.4 为什么玩家需要两个入口？
 
 这是一个经典的 UE 多人游戏模式——**服务器和客户端的初始化时机不同**：
@@ -288,6 +304,7 @@ AI 敌人通常是作为地图的一部分直接放置在关卡中，或者由�
 
 > 🎯 **核心原则**：调用 `InitAbilityActorInfo` 之前，必须确保 Controller 和 PlayerState 都已就绪。
 
+<a id="section-17"></a>
 ### 3.5 DRY 原则：提取 InitAbilityActorInfo 私有函数
 
 注意 `PossessedBy` 和 `OnRep_PlayerState` 中做的事情完全一样，所以提取为私有函数 `InitAbilityActorInfo()`：
@@ -301,8 +318,10 @@ private:
 
 ---
 
+<a id="section-18"></a>
 ## 四、PlayerState 与 Character 的指针桥接
 
+<a id="section-19"></a>
 ### 4.1 问题回顾
 
 在第四次提交中，我们留下了一个"悬而未决"的问题：
@@ -319,6 +338,7 @@ AAuraPlayerState 中也有两个指针：
 问题：AAuraCharacter 的指针怎么指向 AAuraPlayerState 中的对象？
 ```
 
+<a id="section-20"></a>
 ### 4.2 桥接代码
 
 在 `InitAbilityActorInfo()` 中完成桥接：
@@ -344,6 +364,7 @@ void AAuraCharacter::InitAbilityActorInfo()
 - `AAuraCharacter::AttributeSet` → 指向 PlayerState 中的 AttributeSet ✅
 - 通过 `IAbilitySystemInterface::GetAbilitySystemComponent()` 也能正确返回 ✅
 
+<a id="section-21"></a>
 ### 4.3 桥接后的完整数据流
 
 ```
@@ -368,8 +389,10 @@ void AAuraCharacter::InitAbilityActorInfo()
 
 ---
 
+<a id="section-22"></a>
 ## 五、混合复制模式的注意事项
 
+<a id="section-23"></a>
 ### 5.1 Owner Actor 的 Owner 必须是 Controller
 
 当使用 `Mixed` 复制模式时，有一个**硬性要求**：
@@ -378,6 +401,7 @@ void AAuraCharacter::InitAbilityActorInfo()
 
 这意味着 `InitAbilityActorInfo(InOwnerActor, InAvatarActor)` 中的 `InOwnerActor` 必须是一个其 `GetOwner()` 返回有效 Controller 的 Actor。
 
+<a id="section-24"></a>
 ### 5.2 PlayerState 天然满足条件
 
 在本项目中，Owner Actor 是 `AAuraPlayerState`：
@@ -391,6 +415,7 @@ void AAuraCharacter::InitAbilityActorInfo()
 
 ---
 
+<a id="section-25"></a>
 ## 六、新增 / 修改文件清单
 
 | 文件                                                | 操作    | 说明                                                             |
@@ -403,6 +428,7 @@ void AAuraCharacter::InitAbilityActorInfo()
 
 ---
 
+<a id="section-26"></a>
 ## 七、知识点总结
 
 | 知识点                             | 要点                                                                             |

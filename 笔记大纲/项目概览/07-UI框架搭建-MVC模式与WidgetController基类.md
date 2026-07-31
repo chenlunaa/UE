@@ -8,34 +8,36 @@
 
 ## 目录
 
-- [一、MVC 架构设计（5.1 核心）](#一mvc-架构设计51-核心)
-  - [1.1 为什么需要 MVC](#11-为什么需要-mvc)
-  - [1.2 三层职责划分](#12-三层职责划分)
-  - [1.3 单向依赖关系](#13-单向依赖关系)
-  - [1.4 本项目的 MVC 实现方案](#14-本项目的-mvc-实现方案)
-- [二、C++ 基类创建（5.2 核心）](#二c-基类创建52-核心)
-  - [2.1 UAuraUserWidget — 自定义 Widget 基类](#21-uaurauserwidget--自定义-widget-基类)
-  - [2.2 UAuraWidgetController — 自定义控制器基类](#22-uaurawidgetcontroller--自定义控制器基类)
-  - [2.3 SetWidgetController 的联动机制](#23-setwidgetcontroller-的联动机制)
-- [三、GlobeProgressBar 蓝图制作详解（5.3 核心）](#三globeprogressbar-蓝图制作详解53-核心)
-  - [3.1 蓝图继承架构](#31-蓝图继承架构)
-  - [3.2 蓝图控件层级结构](#32-蓝图控件层级结构)
-  - [3.3 蓝图事件图流程](#33-蓝图事件图流程)
-  - [3.4 蓝图变量与分类](#34-蓝图变量与分类)
-- [四、蓝图流程全景图](#四蓝图流程全景图)
-  - [4.1 Event Pre Construct 完整执行流程](#41-event-pre-construct-完整执行流程)
-  - [4.2 蓝图节点详解](#42-蓝图节点详解)
-- [五、健康球与法力球子类（5.4）](#五健康球与法力球子类54)
-  - [5.1 创建健康球子蓝图](#51-创建健康球子蓝图)
-  - [5.2 创建法力球子蓝图](#52-创建法力球子蓝图)
-  - [5.3 覆盖层（Overlay）组装](#53-覆盖层overlay组装)
-- [六、新增文件清单](#六新增文件清单)
-- [七、知识点总结](#七知识点总结)
+- [一、MVC 架构设计（5.1 核心）](#section-3)
+  - [1.1 为什么需要 MVC](#section-4)
+  - [1.2 三层职责划分](#section-5)
+  - [1.3 单向依赖关系](#section-6)
+  - [1.4 本项目的 MVC 实现方案](#section-7)
+- [二、C++ 基类创建（5.2 核心）](#section-8)
+  - [2.1 UAuraUserWidget — 自定义 Widget 基类](#section-9)
+  - [2.2 UAuraWidgetController — 自定义控制器基类](#section-10)
+  - [2.3 SetWidgetController 的联动机制](#section-11)
+- [三、GlobeProgressBar 蓝图制作详解（5.3 核心）](#section-12)
+  - [3.1 蓝图继承架构](#section-13)
+  - [3.2 蓝图控件层级结构](#section-14)
+  - [3.3 蓝图事件图流程](#section-15)
+  - [3.4 蓝图变量与分类](#section-18)
+- [四、蓝图流程全景图](#section-19)
+  - [4.1 Event Pre Construct 完整执行流程](#section-20)
+  - [4.2 蓝图节点详解](#section-21)
+- [五、健康球与法力球子类（5.4）](#section-25)
+  - [5.1 创建健康球子蓝图](#section-26)
+  - [5.2 创建法力球子蓝图](#section-27)
+  - [5.3 覆盖层（Overlay）组装](#section-28)
+- [六、新增文件清单](#section-29)
+- [七、知识点总结](#section-30)
 
 ---
 
+<a id="section-3"></a>
 ## 一、MVC 架构设计（5.1 核心）
 
+<a id="section-4"></a>
 ### 1.1 为什么需要 MVC
 
 在游戏中，UI 需要显示大量数据：生命值、法力值、等级、能力图标等。这些数据分散在属性集、玩家状态、ASC 等多个类中。
@@ -48,6 +50,7 @@
 - 硬编码依赖导致系统僵硬、难以维护
 - Widget 既管数据获取又管视觉显示，职责不清
 
+<a id="section-5"></a>
 ### 1.2 三层职责划分
 
 ```
@@ -69,6 +72,7 @@
 
 > ⚠️ 这里的 "Controller" 不是 UE 引擎的 `APlayerController`，而是一个独立的 **WidgetController** 类。
 
+<a id="section-6"></a>
 ### 1.3 单向依赖关系
 
 ```
@@ -85,6 +89,7 @@ View ──依赖──▶ Controller ──依赖──▶ Model
 - 可以更换 Widget 而无需改 Controller
 - 高度模块化，易于扩展和维护
 
+<a id="section-7"></a>
 ### 1.4 本项目的 MVC 实现方案
 
 | 层级         | UE 中的实现                                                                          |
@@ -95,8 +100,10 @@ View ──依赖──▶ Controller ──依赖──▶ Model
 
 ---
 
+<a id="section-8"></a>
 ## 二、C++ 基类创建（5.2 核心）
 
+<a id="section-9"></a>
 ### 2.1 UAuraUserWidget — 自定义 Widget 基类
 
 **文件**：`Source/Aura/Public/UI/Widget/AuraUserWidget.h`
@@ -137,6 +144,7 @@ void UAuraUserWidget::SetWidgetController(UObject* InWidgetController)
 }
 ```
 
+<a id="section-10"></a>
 ### 2.2 UAuraWidgetController — 自定义控制器基类
 
 **文件**：`Source/Aura/Public/UI/WidgetController/AuraWidgetController.h`
@@ -172,6 +180,7 @@ protected:
 
 > 这 4 个变量都是 `protected` + `BlueprintReadOnly`，子类可以访问但不能在蓝图中直接修改。
 
+<a id="section-11"></a>
 ### 2.3 SetWidgetController 的联动机制
 
 ```
@@ -191,8 +200,10 @@ C++ SetWidgetController() 执行
 
 ---
 
+<a id="section-12"></a>
 ## 三、GlobeProgressBar 蓝图制作详解（5.3 核心）
 
+<a id="section-13"></a>
 ### 3.1 蓝图继承架构
 
 ```
@@ -205,6 +216,7 @@ UAuraUserWidget (C++ 基类)
             └── WBP_ManaGlobe (法力球，蓝色)
 ```
 
+<a id="section-14"></a>
 ### 3.2 蓝图控件层级结构
 
 ```
@@ -226,6 +238,7 @@ Canvas Panel (仅在 Overlay 层使用)
 | ProgressBar_Globe | ProgressBar | 核心！填充方向从下到上，材质为健康球/法力球                |
 | Image_Glass       | Image       | 空球体玻璃材质，制造 3D 玻璃球反光效果                 |
 
+<a id="section-15"></a>
 ### 3.3 蓝图事件图流程
 
 #### 3.3.1 Event Pre Construct（预构建事件）
@@ -305,6 +318,7 @@ Image_Glass (引用)
                 └── Make Margin (全部 = GlobePadding 变量，默认 10)
 ```
 
+<a id="section-18"></a>
 ### 3.4 蓝图变量与分类
 
 所有可被子类覆盖的变量放在 **Globe Properties** 分类中：
@@ -320,8 +334,10 @@ Image_Glass (引用)
 
 ---
 
+<a id="section-19"></a>
 ## 四、蓝图流程全景图
 
+<a id="section-20"></a>
 ### 4.1 Event Pre Construct 完整执行流程
 
 ```
@@ -377,6 +393,7 @@ Image_Glass (引用)
 └─────────────────────────────────────────────────────────────────┘
 ```
 
+<a id="section-21"></a>
 ### 4.2 蓝图节点详解
 
 #### 关键节点 1：Set Style（进度条样式设置）
@@ -425,8 +442,10 @@ ProgressBar_Globe (或 Image_Glass)
 
 ---
 
+<a id="section-25"></a>
 ## 五、健康球与法力球子类（5.4）
 
+<a id="section-26"></a>
 ### 5.1 创建健康球子蓝图
 
 **路径**：`Content/Blueprints/UI/ProgressBar/WBP_HealthGlobe`
@@ -443,6 +462,7 @@ ProgressBar_Globe (或 Image_Glass)
 
 > 修改继承变量会自动触发父类的 Event Pre Construct，所以 Designer 中立即看到变化。
 
+<a id="section-27"></a>
 ### 5.2 创建法力球子蓝图
 
 **路径**：`Content/Blueprints/UI/ProgressBar/WBP_ManaGlobe`
@@ -454,6 +474,7 @@ ProgressBar_Globe (或 Image_Glass)
 1. 同上创建，父类选 `WBP_GlobeProgressBar`
 2. `ProgressBarFillImage` 默认已是 `MI_ManaGlobe`（蓝色），无需修改
 
+<a id="section-28"></a>
 ### 5.3 覆盖层（Overlay）组装
 
 **路径**：`Content/Blueprints/UI/Overlay/WBP_Overlay`
@@ -489,6 +510,7 @@ Event BeginPlay
 
 ---
 
+<a id="section-29"></a>
 ## 六、新增文件清单
 
 | 文件                                                                 | 说明                     |
@@ -504,6 +526,7 @@ Event BeginPlay
 
 ---
 
+<a id="section-30"></a>
 ## 七、知识点总结
 
 | 知识点                                    | 说明                                               |

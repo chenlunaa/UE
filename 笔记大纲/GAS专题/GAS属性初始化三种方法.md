@@ -7,16 +7,17 @@
 
 ## 目录
 
-- [一、概述：为什么需要初始化属性](#一概述为什么需要初始化属性)
-- [二、方法一：代码中直接调用 Attribute Accessors（Setter）](#二方法一代码中直接调用-attribute-accessorssetter)
-- [三、方法二：通过数据表（DataTable）+ DefaultStartingData](#三方法二通过数据表datatable--defaultstartingdata)
-- [四、方法三：通过 GameplayEffect（推荐方式）](#四方法三通过-gameplayeffect推荐方式)
-- [五、三种方法对比总结](#五三种方法对比总结)
-- [六、代码实现详解（方法三）](#六代码实现详解方法三)
-- [七、新增 Primary Attributes 完整流程](#七新增-primary-attributes-完整流程)
+- [一、概述：为什么需要初始化属性](#section-3)
+- [二、方法一：代码中直接调用 Attribute Accessors（Setter）](#section-4)
+- [三、方法二：通过数据表（DataTable）+ DefaultStartingData](#section-8)
+- [四、方法三：通过 GameplayEffect（推荐方式）](#section-12)
+- [五、三种方法对比总结](#section-16)
+- [六、代码实现详解（方法三）](#section-17)
+- [七、新增 Primary Attributes 完整流程](#section-22)
 
 ---
 
+<a id="section-3"></a>
 ## 一、概述：为什么需要初始化属性
 
 在 GAS 中，角色的属性（Attributes）默认初始值为 0。为了让角色在游戏开始时拥有合理的属性值（如力量=10、智力=17），我们需要一种初始化机制。
@@ -31,6 +32,7 @@ Epic 提供了三种初始化属性的方式：
 
 ---
 
+<a id="section-4"></a>
 ## 二、方法一：代码中直接调用 Attribute Accessors（Setter）
 
 ### 2.1 原理
@@ -59,6 +61,7 @@ SetMaxMana(50.f);
 
 ---
 
+<a id="section-8"></a>
 ## 三、方法二：通过数据表（DataTable）+ DefaultStartingData
 
 ### 3.1 原理
@@ -113,6 +116,7 @@ TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
 
 ---
 
+<a id="section-12"></a>
 ## 四、方法三：通过 GameplayEffect（推荐方式）
 
 ### 4.1 原理
@@ -148,6 +152,7 @@ GE 的 Modifiers 以 Override 方式设置各属性值
 
 ---
 
+<a id="section-16"></a>
 ## 五、三种方法对比总结
 
 | 维度 | 方法一：代码 Setter | 方法二：DataTable | 方法三：GameplayEffect |
@@ -162,6 +167,7 @@ GE 的 Modifiers 以 Override 方式设置各属性值
 
 ---
 
+<a id="section-17"></a>
 ## 六、代码实现详解（方法三）
 
 ### 6.1 AAuraCharacterBase — 声明 GE 类和初始化函数
@@ -252,6 +258,7 @@ void AAuraCharacter::InitAbilityActorInfo()
 
 ---
 
+<a id="section-22"></a>
 ## 七、新增 Primary Attributes 完整流程
 
 本次提交同时新增了四个主属性（Strength、Intelligence、Resilience、Vigor），完整流程如下：

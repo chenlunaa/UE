@@ -8,38 +8,39 @@
 
 ## 目录
 
-- [一、整体目标：从硬编码属性修改迁移到 GameplayEffect 系统](#一整体目标从硬编码属性修改迁移到-gameplayeffect-系统)
-- [二、GameplayEffect 核心概念（6.1 理论）](#二gameplayeffect-核心概念61-理论)
-  - [2.1 什么是 GameplayEffect](#21-什么是-gameplayeffect)
-  - [2.2 修改器（Modifier）与操作类型](#22-修改器modifier与操作类型)
-  - [2.3 幅度计算类型（Magnitude Calculation）](#23-幅度计算类型magnitude-calculation)
-  - [2.4 持续时间策略（Duration Policy）](#24-持续时间策略duration-policy)
-  - [2.5 GameplayEffectSpec 与 EffectContext](#25-gameplayeffectspec-与-effectcontext)
-- [三、重构 AuraEffectActor（6.2 核心）](#三重构-auraeffectactor62-核心)
-  - [3.1 移除硬编码组件的原因](#31-移除硬编码组件的原因)
-  - [3.2 C++ 与蓝图的职责划分](#32-c-与蓝图的职责划分)
-  - [3.3 ApplyEffectToTarget 函数详解](#33-applyeffecttotarget-函数详解)
-  - [3.4 两种获取 ASC 的方式对比](#34-两种获取-asc-的方式对比)
-  - [3.5 完整调用链路](#35-完整调用链路)
-- [四、创建即时 GameplayEffect（6.3 实操）](#四创建即时-gameplayeffect63-实操)
-  - [4.1 蓝图创建 GE 的步骤](#41-蓝图创建-ge-的步骤)
-  - [4.2 健康药水 + 法力药水的完整配置](#42-健康药水--法力药水的完整配置)
-  - [4.3 蓝图侧事件绑定](#43-蓝图侧事件绑定)
-- [五、蓝图 vs C++ 应用 GE 的两种方式（6.4 对比）](#五蓝图-vs-c-应用-ge-的两种方式64-对比)
-  - [5.1 C++ 方式（我们使用的）](#51-c-方式我们使用的)
-  - [5.2 纯蓝图方式](#52-纯蓝图方式)
-  - [5.3 两种方式的取舍](#53-两种方式的取舍)
-- [六、持续时间与周期性效果（6.4-6.5）](#六持续时间与周期性效果64-65)
-  - [6.1 基本值 vs 当前值](#61-基本值-vs-当前值)
-  - [6.2 持续时间效果 — 健康水晶](#62-持续时间效果--健康水晶)
-  - [6.3 周期性效果 — 持续治疗](#63-周期性效果--持续治疗)
-  - [6.4 周期抑制策略](#64-周期抑制策略)
-- [七、OverlayWidgetController 扩展法力值监听](#七overlaywidgetcontroller-扩展法力值监听)
-- [八、新增/修改文件清单](#八新增修改文件清单)
-- [九、知识点总结](#九知识点总结)
+- [一、整体目标：从硬编码属性修改迁移到 GameplayEffect 系统](#section-3)
+- [二、GameplayEffect 核心概念（6.1 理论）](#section-4)
+  - [2.1 什么是 GameplayEffect](#section-5)
+  - [2.2 修改器（Modifier）与操作类型](#section-6)
+  - [2.3 幅度计算类型（Magnitude Calculation）](#section-7)
+  - [2.4 持续时间策略（Duration Policy）](#section-8)
+  - [2.5 GameplayEffectSpec 与 EffectContext](#section-9)
+- [三、重构 AuraEffectActor（6.2 核心）](#section-10)
+  - [3.1 移除硬编码组件的原因](#section-11)
+  - [3.2 C++ 与蓝图的职责划分](#section-12)
+  - [3.3 ApplyEffectToTarget 函数详解](#section-13)
+  - [3.4 两种获取 ASC 的方式对比](#section-14)
+  - [3.5 完整调用链路](#section-15)
+- [四、创建即时 GameplayEffect（6.3 实操）](#section-16)
+  - [4.1 蓝图创建 GE 的步骤](#section-17)
+  - [4.2 健康药水 + 法力药水的完整配置](#section-18)
+  - [4.3 蓝图侧事件绑定](#section-19)
+- [五、蓝图 vs C++ 应用 GE 的两种方式（6.4 对比）](#section-20)
+  - [5.1 C++ 方式（我们使用的）](#section-21)
+  - [5.2 纯蓝图方式](#section-22)
+  - [5.3 两种方式的取舍](#section-23)
+- [六、持续时间与周期性效果（6.4-6.5）](#section-24)
+  - [6.1 基本值 vs 当前值](#section-25)
+  - [6.2 持续时间效果 — 健康水晶](#section-26)
+  - [6.3 周期性效果 — 持续治疗](#section-27)
+  - [6.4 周期抑制策略](#section-28)
+- [七、OverlayWidgetController 扩展法力值监听](#section-29)
+- [八、新增/修改文件清单](#section-30)
+- [九、知识点总结](#section-31)
 
 ---
 
+<a id="section-3"></a>
 ## 一、整体目标：从硬编码属性修改迁移到 GameplayEffect 系统
 
 在之前的 AuraEffectActor 中，我们直接通过 `const_cast` 获取 AttributeSet 并手动调用 `SetHealth()` 来修改属性值。这种方式存在严重问题：
@@ -70,8 +71,10 @@
 
 ---
 
+<a id="section-4"></a>
 ## 二、GameplayEffect 核心概念（6.1 理论）
 
+<a id="section-5"></a>
 ### 2.1 什么是 GameplayEffect
 
 > GameplayEffect（简称 GE）是 GAS 中用于**修改属性和游戏标签**的数据资产类型。
@@ -89,6 +92,7 @@ UGameplayEffect (C++ 基类)
     └── GE_CrystalHeal (蓝图)
 ```
 
+<a id="section-6"></a>
 ### 2.2 修改器（Modifier）与操作类型
 
 修改器是 GE 中改变属性的核心机制，每个 GE 可以有**多个修改器**（数组），同时影响多个属性。
@@ -104,6 +108,7 @@ UGameplayEffect (C++ 基类)
 
 > 💡 加法中使用负值即可实现减法效果。
 
+<a id="section-7"></a>
 ### 2.3 幅度计算类型（Magnitude Calculation）
 
 修改器中的"幅度"（Magnitude）可以通过多种方式计算：
@@ -117,6 +122,7 @@ UGameplayEffect (C++ 基类)
 
 > 本阶段我们只使用最简单的 **Scalable Float**。
 
+<a id="section-8"></a>
 ### 2.4 持续时间策略（Duration Policy）
 
 | 策略 | 行为 | 修改目标 | 适用场景 |
@@ -127,6 +133,7 @@ UGameplayEffect (C++ 基类)
 
 > 🔑 **关键区别**：Instant 修改**基本值**（永久），Duration/Infinite 修改**当前值**（可撤销）。
 
+<a id="section-9"></a>
 ### 2.5 GameplayEffectSpec 与 EffectContext
 
 GAS 使用"规格（Spec）"模式来优化 GE 的应用：
@@ -151,8 +158,10 @@ GameplayEffect (类默认对象/CDO)
 
 ---
 
+<a id="section-10"></a>
 ## 三、重构 AuraEffectActor（6.2 核心）
 
+<a id="section-11"></a>
 ### 3.1 移除硬编码组件的原因
 
 **旧代码的问题**：
@@ -175,6 +184,7 @@ C++ 侧：只保留核心逻辑（应用效果的能力）
 蓝图侧：自由选择视觉表现 + 碰撞体积 + 事件绑定
 ```
 
+<a id="section-12"></a>
 ### 3.2 C++ 与蓝图的职责划分
 
 | 职责 | C++ | 蓝图 |
@@ -196,6 +206,7 @@ AAuraEffectActor::AAuraEffectActor()
 }
 ```
 
+<a id="section-13"></a>
 ### 3.3 ApplyEffectToTarget 函数详解
 
 这是本次提交最核心的 C++ 函数：
@@ -249,6 +260,7 @@ void AAuraEffectActor::ApplyEffectToTarget(AActor* TargetActor,
 
 > ⚠️ **语法要点**：`EffectSpecHandle.Data` 是 `TSharedPtr<FGameplayEffectSpec>`，所以需要 `.Get()` 获取原始指针，再 `*` 解引用为引用。
 
+<a id="section-14"></a>
 ### 3.4 两种获取 ASC 的方式对比
 
 | 方式 | 代码 | 优点 | 缺点 |
@@ -273,6 +285,7 @@ UAbilitySystemComponent* TargetASC =
 
 > 💡 蓝图库函数是**更健壮**的选择，因为它处理了 Actor 未实现接口的边缘情况。
 
+<a id="section-15"></a>
 ### 3.5 完整调用链路
 
 ```
@@ -300,8 +313,10 @@ ApplyEffectToTarget(TargetActor, GameplayEffectClass)  ← 蓝图可调用
 
 ---
 
+<a id="section-16"></a>
 ## 四、创建即时 GameplayEffect（6.3 实操）
 
+<a id="section-17"></a>
 ### 4.1 蓝图创建 GE 的步骤
 
 ```
@@ -316,6 +331,7 @@ ApplyEffectToTarget(TargetActor, GameplayEffectClass)  ← 蓝图可调用
    └── Application Chance: 1.0（100% 概率应用）
 ```
 
+<a id="section-18"></a>
 ### 4.2 健康药水 + 法力药水的完整配置
 
 **GE_PotionHeal（健康药水效果）**：
@@ -334,6 +350,7 @@ ApplyEffectToTarget(TargetActor, GameplayEffectClass)  ← 蓝图可调用
 | Modifier[0].ModifierOp | Add |
 | Modifier[0].Magnitude (ScalableFloat) | 30.0 |
 
+<a id="section-19"></a>
 ### 4.3 蓝图侧事件绑定
 
 在 `BP_HealthPotion` 蓝图中：
@@ -351,8 +368,10 @@ ApplyEffectToTarget(TargetActor, GameplayEffectClass)  ← 蓝图可调用
 
 ---
 
+<a id="section-20"></a>
 ## 五、蓝图 vs C++ 应用 GE 的两种方式（6.4 对比）
 
+<a id="section-21"></a>
 ### 5.1 C++ 方式（我们使用的）
 
 ```cpp
@@ -363,6 +382,7 @@ void ApplyEffectToTarget(AActor* TargetActor, TSubclassOf<UGameplayEffect> Gamep
 
 **蓝图侧**：只需一个节点，干净整洁。
 
+<a id="section-22"></a>
 ### 5.2 纯蓝图方式
 
 ```
@@ -375,6 +395,7 @@ void ApplyEffectToTarget(AActor* TargetActor, TSubclassOf<UGameplayEffect> Gamep
 
 **蓝图侧**：需要 4-5 个节点串联，略显杂乱。
 
+<a id="section-23"></a>
 ### 5.3 两种方式的取舍
 
 | 维度 | C++ 封装 | 纯蓝图 |
@@ -389,8 +410,10 @@ void ApplyEffectToTarget(AActor* TargetActor, TSubclassOf<UGameplayEffect> Gamep
 
 ---
 
+<a id="section-24"></a>
 ## 六、持续时间与周期性效果（6.4-6.5）
 
+<a id="section-25"></a>
 ### 6.1 基本值 vs 当前值
 
 这是理解 GE 持续时间策略的关键概念：
@@ -419,6 +442,7 @@ Periodic GE (周期性):
   视觉表现：健康球从 50% 降到 25%（因为分母变大）
 ```
 
+<a id="section-26"></a>
 ### 6.2 持续时间效果 — 健康水晶
 
 **GE_CrystalHeal 配置**：
@@ -432,6 +456,7 @@ Periodic GE (周期性):
 
 > 演示效果：最大生命值临时翻倍，2 秒后恢复。健康球会先"缩小"再恢复。
 
+<a id="section-27"></a>
 ### 6.3 周期性效果 — 持续治疗
 
 将 Duration/Infinite GE 的 **Period（周期）** 设为非零值即可变为周期性效果：
@@ -456,6 +481,7 @@ Periodic GE (周期性):
 
 > ⚠️ **性能考量**：不要将周期设得太小（如 0.01 秒），因为每次周期都会触发 GAS 的完整预测/同步流程。对于平滑的 UI 表现，应使用**插值渲染**而非提高 GE 频率。
 
+<a id="section-28"></a>
 ### 6.4 周期抑制策略
 
 当 GE 被标签抑制时，周期性效果的"未执行周期"处理方式：
@@ -469,6 +495,7 @@ Periodic GE (周期性):
 
 ---
 
+<a id="section-29"></a>
 ## 七、OverlayWidgetController 扩展法力值监听
 
 本次提交同时扩展了法力值的 UI 绑定：
@@ -508,6 +535,7 @@ void UOverlayWidgetController::BindCallbacksToDependencies()
 
 ---
 
+<a id="section-30"></a>
 ## 八、新增/修改文件清单
 
 | 文件 | 变更类型 | 说明 |
@@ -527,6 +555,7 @@ void UOverlayWidgetController::BindCallbacksToDependencies()
 
 ---
 
+<a id="section-31"></a>
 ## 九、知识点总结
 
 | 知识点 | 关键内容 |

@@ -1,3 +1,4 @@
+<a id="section-1"></a>
 # 使用 ATTRIBUTE_ACCESSORS 改变 AttributeSet 中的元素值
 
 > 📦 Commit `c1759cb`：AttributeSet 属性声明 + 复制 + ATTRIBUTE_ACCESSORS 宏 + 构造函数初始化  
@@ -6,45 +7,48 @@
 
 ---
 
+<a id="section-2"></a>
 ## 目录
 
-- [使用 ATTRIBUTE_ACCESSORS 改变 AttributeSet 中的元素值](#使用-attribute_accessors-改变-attributeset-中的元素值)
-  - [目录](#目录)
-  - [一、属性集（AttributeSet）深入理解](#一属性集attributeset深入理解)
-    - [1.1 属性集与 ASC 的关系](#11-属性集与-asc-的关系)
-    - [1.2 多个属性集 vs 单个属性集](#12-多个属性集-vs-单个属性集)
-    - [1.3 什么是属性（Attribute）](#13-什么是属性attribute)
-  - [二、客户端预测（Client Prediction）](#二客户端预测client-prediction)
-    - [2.1 为什么需要预测](#21-为什么需要预测)
-    - [2.2 无预测的工作流程（糟糕体验）](#22-无预测的工作流程糟糕体验)
-    - [2.3 有预测的工作流程（流畅体验）](#23-有预测的工作流程流畅体验)
-    - [2.4 GAS 内置预测的优势](#24-gas-内置预测的优势)
-  - [三、属性的基础值与当前值](#三属性的基础值与当前值)
-    - [3.1 基础值（Base Value）](#31-基础值base-value)
-    - [3.2 当前值（Current Value）](#32-当前值current-value)
-    - [3.3 最大值属性是独立的](#33-最大值属性是独立的)
-  - [四、属性声明完整步骤（4.2 核心）](#四属性声明完整步骤42-核心)
-    - [4.1 步骤总览](#41-步骤总览)
-    - [4.2 第一步：声明变量](#42-第一步声明变量)
-    - [4.3 第二步：创建 OnRep 通知函数](#43-第二步创建-onrep-通知函数)
-    - [4.4 第三步：实现 OnRep 函数（GAMEPLAYATTRIBUTE_REPNOTIFY）](#44-第三步实现-onrep-函数gameplayattribute_repnotify)
-    - [4.5 第四步：注册复制（GetLifetimeReplicatedProps）](#45-第四步注册复制getlifetimereplicatedprops)
-    - [4.6 完整代码示例：Health + MaxHealth + Mana + MaxMana](#46-完整代码示例health--maxhealth--mana--maxmana)
-  - [五、ATTRIBUTE_ACCESSORS 宏（4.3 核心）](#五attribute_accessors-宏43-核心)
-    - [5.1 四个底层宏](#51-四个底层宏)
-    - [5.2 ATTRIBUTE_ACCESSORS 的定义](#52-attribute_accessors-的定义)
-    - [5.3 使用示例](#53-使用示例)
-    - [5.4 在构造函数中初始化属性](#54-在构造函数中初始化属性)
-  - [六、验证调试](#六验证调试)
-    - [6.1 Show Debug Ability System 命令](#61-show-debug-ability-system-命令)
-    - [6.2 调试信息解读](#62-调试信息解读)
-  - [七、新增 / 修改文件清单](#七新增--修改文件清单)
-  - [八、知识点总结](#八知识点总结)
+- [使用 ATTRIBUTE_ACCESSORS 改变 AttributeSet 中的元素值](#section-1)
+  - [目录](#section-2)
+  - [一、属性集（AttributeSet）深入理解](#section-3)
+    - [1.1 属性集与 ASC 的关系](#section-4)
+    - [1.2 多个属性集 vs 单个属性集](#section-5)
+    - [1.3 什么是属性（Attribute）](#section-6)
+  - [二、客户端预测（Client Prediction）](#section-7)
+    - [2.1 为什么需要预测](#section-8)
+    - [2.2 无预测的工作流程（糟糕体验）](#section-9)
+    - [2.3 有预测的工作流程（流畅体验）](#section-10)
+    - [2.4 GAS 内置预测的优势](#section-11)
+  - [三、属性的基础值与当前值](#section-12)
+    - [3.1 基础值（Base Value）](#section-13)
+    - [3.2 当前值（Current Value）](#section-14)
+    - [3.3 最大值属性是独立的](#section-15)
+  - [四、属性声明完整步骤（4.2 核心）](#section-16)
+    - [4.1 步骤总览](#section-17)
+    - [4.2 第一步：声明变量](#section-18)
+    - [4.3 第二步：创建 OnRep 通知函数](#section-19)
+    - [4.4 第三步：实现 OnRep 函数（GAMEPLAYATTRIBUTE_REPNOTIFY）](#section-20)
+    - [4.5 第四步：注册复制（GetLifetimeReplicatedProps）](#section-21)
+    - [4.6 完整代码示例：Health + MaxHealth + Mana + MaxMana](#section-22)
+  - [五、ATTRIBUTE_ACCESSORS 宏（4.3 核心）](#section-23)
+    - [5.1 四个底层宏](#section-24)
+    - [5.2 ATTRIBUTE_ACCESSORS 的定义](#section-25)
+    - [5.3 使用示例](#section-26)
+    - [5.4 在构造函数中初始化属性](#section-27)
+  - [六、验证调试](#section-28)
+    - [6.1 Show Debug Ability System 命令](#section-29)
+    - [6.2 调试信息解读](#section-30)
+  - [七、新增 / 修改文件清单](#section-31)
+  - [八、知识点总结](#section-32)
 
 ---
 
+<a id="section-3"></a>
 ## 一、属性集（AttributeSet）深入理解
 
+<a id="section-4"></a>
 ### 1.1 属性集与 ASC 的关系
 
 当我们在所有者 Actor 的构造函数内构造属性集时，它会**自动注册**到能力系统组件（ASC）。ASC 可以访问任何已注册的属性集。
@@ -54,6 +58,7 @@
 // AttributeSet 会自动注册到 ASC，无需手动调用注册函数
 ```
 
+<a id="section-5"></a>
 ### 1.2 多个属性集 vs 单个属性集
 
 | 方案        | 说明                                                         |
@@ -65,6 +70,7 @@
 
 本项目采用**单个属性集**策略，包含所有角色使用的属性。
 
+<a id="section-6"></a>
 ### 1.3 什么是属性（Attribute）
 
 - 属性是与游戏中给定实体（如角色）相关联的**数值量**
@@ -75,12 +81,15 @@
 
 ---
 
+<a id="section-7"></a>
 ## 二、客户端预测（Client Prediction）
 
+<a id="section-8"></a>
 ### 2.1 为什么需要预测
 
 在多人游戏中，数据在网络上传输需要时间（延迟）。如果没有预测，客户端执行操作后需要等待服务器确认才能看到效果，导致明显的卡顿感。
 
+<a id="section-9"></a>
 ### 2.2 无预测的工作流程（糟糕体验）
 
 ```
@@ -90,6 +99,7 @@
 - 延迟 100ms 或更长时间并不罕见
 - 玩家执行操作后要等很久才能看到效果，体验极差
 
+<a id="section-10"></a>
 ### 2.3 有预测的工作流程（流畅体验）
 
 ```
@@ -102,27 +112,32 @@
 - 服务器仍然保持**权威**（可以拒绝无效更改并回滚）
 - 预测是多人游戏中创造更流畅体验的关键因素
 
+<a id="section-11"></a>
 ### 2.4 GAS 内置预测的优势
 
 GAS 将预测作为**内置功能**贯穿整个系统。我们不需要自己实现延迟补偿，可以专注于游戏机制的创造。
 
 ---
 
+<a id="section-12"></a>
 ## 三、属性的基础值与当前值
 
 每个属性实际上由**两个值**组成：
 
+<a id="section-13"></a>
 ### 3.1 基础值（Base Value）
 
 - 属性的**永久值**
 - 不受临时效果影响
 
+<a id="section-14"></a>
 ### 3.2 当前值（Current Value）
 
 - 基础值 + 由游戏效果（Gameplay Effect）引起的**临时修改**
 - 例如：一个 Buff 在 10 秒内增加 50 点力量，这 50 点就是临时修改
 - 当 Buff 时间结束后，临时修改被取消，属性回到基础值
 
+<a id="section-15"></a>
 ### 3.3 最大值属性是独立的
 
 > ⚠️ **常见错误**：认为基础值就是属性的最大值。
@@ -138,8 +153,10 @@ Health 百分比 = Health / BaseHealth  ❌ 错误
 
 ---
 
+<a id="section-16"></a>
 ## 四、属性声明完整步骤（4.2 核心）
 
+<a id="section-17"></a>
 ### 4.1 步骤总览
 
 为属性集添加一个新属性需要以下 **4 个步骤**：
@@ -151,6 +168,7 @@ Health 百分比 = Health / BaseHealth  ❌ 错误
 4. 注册复制（DOREPLIFETIME_CONDITION_NOTIFY）
 ```
 
+<a id="section-18"></a>
 ### 4.2 第一步：声明变量
 
 在头文件中声明 `FGameplayAttributeData` 类型的属性，使用 `ReplicatedUsing` 标记复制：
@@ -168,6 +186,7 @@ FGameplayAttributeData Health;
 - `ReplicatedUsing = OnRep_Health`：当属性从服务器复制到客户端时，自动调用 `OnRep_Health` 函数
 - `Category = "Vital Attributes"`：在蓝图中的分类名称
 
+<a id="section-19"></a>
 ### 4.3 第二步：创建 OnRep 通知函数
 
 ```cpp
@@ -184,6 +203,7 @@ void OnRep_Health(const FGameplayAttributeData& OldHealth) const;
 - 如果提供了旧值参数，可以在函数中比较新旧值
 - 可以标记为 `const`
 
+<a id="section-20"></a>
 ### 4.4 第三步：实现 OnRep 函数（GAMEPLAYATTRIBUTE_REPNOTIFY）
 
 ```cpp
@@ -201,6 +221,7 @@ void UAuraAttributeSet::OnRep_Health(const FGameplayAttributeData& OldHealth) co
 - 让 GAS 做底层账目记录以保持系统一致性
 - 跟踪旧值，以便在需要时**回滚**更改（预测场景）
 
+<a id="section-21"></a>
 ### 4.5 第四步：注册复制（GetLifetimeReplicatedProps）
 
 ```cpp
@@ -227,6 +248,7 @@ void UAuraAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 
 > 为什么用 `REPNOTIFY_Always`？因为即使将属性设置为与当前相同的值，我们也可能想对这个"设置行为"做出反应。
 
+<a id="section-22"></a>
 ### 4.6 完整代码示例：Health + MaxHealth + Mana + MaxMana
 
 **头文件（AuraAttributeSet.h）：**
@@ -315,8 +337,10 @@ void UAuraAttributeSet::OnRep_MaxMana(const FGameplayAttributeData& OldMaxMana) 
 
 ---
 
+<a id="section-23"></a>
 ## 五、ATTRIBUTE_ACCESSORS 宏（4.3 核心）
 
+<a id="section-24"></a>
 ### 5.1 四个底层宏
 
 GAS 提供了四个底层宏，用于生成属性的访问函数：
@@ -330,6 +354,7 @@ GAS 提供了四个底层宏，用于生成属性的访问函数：
 
 > `Set` 和 `Init` 的区别：`Set` 只设置基础值，`Init` 同时设置基础值和当前值。
 
+<a id="section-25"></a>
 ### 5.2 ATTRIBUTE_ACCESSORS 的定义
 
 为了减少重复代码，可以定义一个方便的宏：
@@ -342,6 +367,7 @@ GAS 提供了四个底层宏，用于生成属性的访问函数：
     GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName)
 ```
 
+<a id="section-26"></a>
 ### 5.3 使用示例
 
 ```cpp
@@ -360,6 +386,7 @@ ATTRIBUTE_ACCESSORS(UAuraAttributeSet, Health);
 - `void UAuraAttributeSet::SetHealth(float NewVal)`
 - `void UAuraAttributeSet::InitHealth(float NewVal)`
 
+<a id="section-27"></a>
 ### 5.4 在构造函数中初始化属性
 
 ```cpp
@@ -376,8 +403,10 @@ UAuraAttributeSet::UAuraAttributeSet()
 
 ---
 
+<a id="section-28"></a>
 ## 六、验证调试
 
+<a id="section-29"></a>
 ### 6.1 Show Debug Ability System 命令
 
 在游戏运行时，打开控制台（~键），输入：
@@ -388,6 +417,7 @@ showdebug abilitysystem
 
 （两个单词：`showdebug` + `abilitysystem`）
 
+<a id="section-30"></a>
 ### 6.2 调试信息解读
 
 调试视图会显示：
@@ -407,6 +437,7 @@ showdebug abilitysystem
 
 ---
 
+<a id="section-31"></a>
 ## 七、新增 / 修改文件清单
 
 | 文件                                                       | 变更类型 | 说明                                                                 |
@@ -417,6 +448,7 @@ showdebug abilitysystem
 
 ---
 
+<a id="section-32"></a>
 ## 八、知识点总结
 
 | 知识点                     | 关键内容                                                          |

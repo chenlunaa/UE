@@ -1,3 +1,4 @@
+<a id="section-1"></a>
 # UE5 学习笔记 — 第十四次提交（第9章：AttributeMenu 属性菜单系统）
 
 > 📦 Commit `d5dabe4`：完成了整个 AttributeMenu  
@@ -6,47 +7,49 @@
 
 ---
 
+<a id="section-2"></a>
 ## 目录
 
-- [UE5 学习笔记 — 第十四次提交（第9章：AttributeMenu 属性菜单系统）](#ue5-学习笔记--第十四次提交第9章attributemenu-属性菜单系统)
-  - [目录](#目录)
-  - [一、整体目标：构建属性菜单 UI 系统](#一整体目标构建属性菜单-ui-系统)
-  - [二、技术栈总览](#二技术栈总览)
-  - [三、原生 GameplayTag 单例体系（9.11~9.13）](#三原生-gameplaytag-单例体系911913)
-    - [3.1 为什么需要原生 GameplayTag](#31-为什么需要原生-gameplaytag)
-    - [3.2 单例模式设计：FAuraGameplayTags](#32-单例模式设计fauragameplaytags)
-    - [3.3 初始化时机：AuraAssetManager（9.12）](#33-初始化时机auraassetmanager912)
-    - [3.4 完整标签清单（9.13）](#34-完整标签清单913)
-  - [四、DataAsset 驱动属性信息（9.14）](#四dataasset-驱动属性信息914)
-    - [4.1 UDataAsset 的优势](#41-udataasset-的优势)
-    - [4.2 FAuraAttributeInfo 结构体设计](#42-fauraattributeinfo-结构体设计)
-    - [4.3 UAttributeInfo 数据资产与查找函数](#43-uattributeinfo-数据资产与查找函数)
-  - [五、WidgetController 架构扩展（9.15~9.17）](#五widgetcontroller-架构扩展915917)
-    - [5.1 AttributeMenuWidgetController 子类（9.15）](#51-attributemenuwidgetcontroller-子类915)
-    - [5.2 AuraHUD 扩展（9.17）](#52-aurahud-扩展917)
-    - [5.3 蓝图函数库：AuraAbilitySystemLibrary（9.16）](#53-蓝图函数库auraabilitysystemlibrary916)
-  - [六、GameplayTag → Attribute 映射系统（9.20）](#六gameplaytag--attribute-映射系统920)
-    - [6.1 核心问题：如何用 Tag 找到对应的 Attribute](#61-核心问题如何用-tag-找到对应的-attribute)
-    - [6.2 静态函数指针委托（TStaticFuncPtr）](#62-静态函数指针委托tstaticfuncptr)
-    - [6.3 TagsToAttribute 映射表](#63-tagstoattribute-映射表)
-  - [七、属性广播与动态更新（9.18~9.21）](#七属性广播与动态更新918921)
-    - [7.1 委托声明：FAttributeInfoSignature（9.18）](#71-委托声明fattributeinfosignature918)
-    - [7.2 BroadcastInitialValues 通用循环（9.20）](#72-broadcastinitialvalues-通用循环920)
-    - [7.3 BindCallbacksToDependencies Lambda 捕获（9.21）](#73-bindcallbackstodependencies-lambda-捕获921)
-  - [八、蓝图端实现（9.19）](#八蓝图端实现919)
-    - [8.1 TextValueRow 添加 AttributeTag 变量](#81-textvaluerow-添加-attributetag-变量)
-    - [8.2 属性菜单初始化流程](#82-属性菜单初始化流程)
-  - [九、新增/修改文件清单](#九新增修改文件清单)
-    - [新增文件（C++）](#新增文件c)
-    - [修改文件（C++）](#修改文件c)
-    - [配置文件修改](#配置文件修改)
-  - [十、知识点总结](#十知识点总结)
-    - [核心设计模式](#核心设计模式)
-    - [关键技术点](#关键技术点)
-    - [数据流向图](#数据流向图)
+- [UE5 学习笔记 — 第十四次提交（第9章：AttributeMenu 属性菜单系统）](#section-1)
+  - [目录](#section-2)
+  - [一、整体目标：构建属性菜单 UI 系统](#section-3)
+  - [二、技术栈总览](#section-4)
+  - [三、原生 GameplayTag 单例体系（9.11~9.13）](#section-5)
+    - [3.1 为什么需要原生 GameplayTag](#section-6)
+    - [3.2 单例模式设计：FAuraGameplayTags](#section-7)
+    - [3.3 初始化时机：AuraAssetManager（9.12）](#section-8)
+    - [3.4 完整标签清单（9.13）](#section-9)
+  - [四、DataAsset 驱动属性信息（9.14）](#section-10)
+    - [4.1 UDataAsset 的优势](#section-11)
+    - [4.2 FAuraAttributeInfo 结构体设计](#section-12)
+    - [4.3 UAttributeInfo 数据资产与查找函数](#section-13)
+  - [五、WidgetController 架构扩展（9.15~9.17）](#section-14)
+    - [5.1 AttributeMenuWidgetController 子类（9.15）](#section-15)
+    - [5.2 AuraHUD 扩展（9.17）](#section-16)
+    - [5.3 蓝图函数库：AuraAbilitySystemLibrary（9.16）](#section-17)
+  - [六、GameplayTag → Attribute 映射系统（9.20）](#section-18)
+    - [6.1 核心问题：如何用 Tag 找到对应的 Attribute](#section-19)
+    - [6.2 静态函数指针委托（TStaticFuncPtr）](#section-20)
+    - [6.3 TagsToAttribute 映射表](#section-21)
+  - [七、属性广播与动态更新（9.18~9.21）](#section-22)
+    - [7.1 委托声明：FAttributeInfoSignature（9.18）](#section-23)
+    - [7.2 BroadcastInitialValues 通用循环（9.20）](#section-24)
+    - [7.3 BindCallbacksToDependencies Lambda 捕获（9.21）](#section-25)
+  - [八、蓝图端实现（9.19）](#section-26)
+    - [8.1 TextValueRow 添加 AttributeTag 变量](#section-27)
+    - [8.2 属性菜单初始化流程](#section-28)
+  - [九、新增/修改文件清单](#section-29)
+    - [新增文件（C++）](#section-30)
+    - [修改文件（C++）](#section-31)
+    - [配置文件修改](#section-32)
+  - [十、知识点总结](#section-33)
+    - [核心设计模式](#section-34)
+    - [关键技术点](#section-35)
+    - [数据流向图](#section-36)
 
 ---
 
+<a id="section-3"></a>
 ## 一、整体目标：构建属性菜单 UI 系统
 
 本次提交的核心目标是实现一个**属性菜单（Attribute Menu）**，展示角色所有属性的名称、描述和当前数值，并在属性变化时实时更新。完整的数据链路如下：
@@ -66,6 +69,7 @@ WBP_AttributeMenu（蓝图绑定）
 
 ---
 
+<a id="section-4"></a>
 ## 二、技术栈总览
 
 | 层级 | 技术/模式 | 用途 |
@@ -81,8 +85,10 @@ WBP_AttributeMenu（蓝图绑定）
 
 ---
 
+<a id="section-5"></a>
 ## 三、原生 GameplayTag 单例体系（9.11~9.13）
 
+<a id="section-6"></a>
 ### 3.1 为什么需要原生 GameplayTag
 
 **痛点：** 之前使用 `RequestGameplayTag("Attributes.Vital.Health")` 方式获取标签，存在以下问题：
@@ -101,6 +107,7 @@ const FAuraGameplayTags& Tags = FAuraGameplayTags::Get();
 FGameplayTag HealthTag = Tags.Attribute_Primary_Strength;
 ```
 
+<a id="section-7"></a>
 ### 3.2 单例模式设计：FAuraGameplayTags
 
 采用**结构体 + 静态单例**模式，而非 UObject 派生类：
@@ -162,6 +169,7 @@ void FAuraGameplayTags::InitializeNativeGameplayTags()
 
 > **关键理解：** `AddNativeGameplayTag` 会将标签注册到全局 GameplayTagsManager，同时返回 `FGameplayTag` 变量。这些标签在编辑器的项目设置中也会显示为"Native"。
 
+<a id="section-8"></a>
 ### 3.3 初始化时机：AuraAssetManager（9.12）
 
 **问题：** `InitializeNativeGameplayTags()` 需要在引擎早期调用，但必须在 GameplayTagsManager 初始化之后。
@@ -205,6 +213,7 @@ AssetManagerClassName=/Script/Aura.AuraAssetManager
 
 > **关键理解：** `AssetManager` 是 UE 引擎级别的单例，通过 `DefaultEngine.ini` 指定自定义子类后，引擎启动时会自动创建该子类的唯一实例。`StartInitialLoading()` 在所有资产加载之前调用，是注册原生标签的最佳时机。
 
+<a id="section-9"></a>
 ### 3.4 完整标签清单（9.13）
 
 | 分类 | 标签名 | 描述 |
@@ -228,8 +237,10 @@ AssetManagerClassName=/Script/Aura.AuraAssetManager
 
 ---
 
+<a id="section-10"></a>
 ## 四、DataAsset 驱动属性信息（9.14）
 
+<a id="section-11"></a>
 ### 4.1 UDataAsset 的优势
 
 `UDataAsset` 是 UE 中存储配置数据的轻量级资产类型，非常适合属性菜单场景：
@@ -241,6 +252,7 @@ AssetManagerClassName=/Script/Aura.AuraAssetManager
 | **类型安全** | C++ 定义结构体，蓝图填充，编译期类型检查 |
 | **无需 Actor** | 不依赖世界实例，纯数据层 |
 
+<a id="section-12"></a>
 ### 4.2 FAuraAttributeInfo 结构体设计
 
 ```cpp
@@ -273,6 +285,7 @@ struct FAuraAttributeInfo
 - `AttributeName` 和 `AttributeDescription` 使用 `FText` 而非 `FString`，因为要显示给用户（支持本地化）
 - `AttributeValue` 标记为 `BlueprintReadOnly`（非 `EditDefaultsOnly`），因为它在运行时由 C++ 填充，不在数据资产中手动配置
 
+<a id="section-13"></a>
 ### 4.3 UAttributeInfo 数据资产与查找函数
 
 ```cpp
@@ -318,8 +331,10 @@ FAuraAttributeInfo UAttributeInfo::FindAttributeInfoForTag(const FGameplayTag& A
 
 ---
 
+<a id="section-14"></a>
 ## 五、WidgetController 架构扩展（9.15~9.17）
 
+<a id="section-15"></a>
 ### 5.1 AttributeMenuWidgetController 子类（9.15）
 
 继承自 `UAuraWidgetController`，专门服务于属性菜单：
@@ -356,6 +371,7 @@ UObject
         └── UAttributeMenuWidgetController (属性菜单)
 ```
 
+<a id="section-16"></a>
 ### 5.2 AuraHUD 扩展（9.17）
 
 在 `AAuraHUD` 中添加属性菜单控制器的单例管理：
@@ -396,6 +412,7 @@ UAttributeMenuWidgetController* AAuraHUD::GetAttributeMenuWidgetController(const
 
 > **设计模式：** 延迟初始化（Lazy Initialization）—— 首次请求时才创建，之后始终返回同一实例。这确保了属性菜单控制器在整个会话中的单例性。
 
+<a id="section-17"></a>
 ### 5.3 蓝图函数库：AuraAbilitySystemLibrary（9.16）
 
 **动机：** 让蓝图能够轻松获取 WidgetController，无需通过复杂的 HUD 查找链。
@@ -459,8 +476,10 @@ UAttributeMenuWidgetController* UAuraAbilitySystemLibrary::GetAttributeMenuWidge
 
 ---
 
+<a id="section-18"></a>
 ## 六、GameplayTag → Attribute 映射系统（9.20）
 
+<a id="section-19"></a>
 ### 6.1 核心问题：如何用 Tag 找到对应的 Attribute
 
 在属性菜单中，我们需要实现一个通用循环：
@@ -474,6 +493,7 @@ UAttributeMenuWidgetController* UAuraAbilitySystemLibrary::GetAttributeMenuWidge
 
 **难题：** `UAuraAttributeSet` 中每个属性都有独立的 getter（`GetStrengthAttribute()`、`GetIntelligenceAttribute()` 等），如何在一个通用循环中调用正确的 getter？
 
+<a id="section-20"></a>
 ### 6.2 静态函数指针委托（TStaticFuncPtr）
 
 利用 `ATTRIBUTE_ACCESSORS` 宏生成的静态 `GetXxxAttribute()` 函数，这些函数的签名完全一致：**无参数，返回 `FGameplayAttribute`**。
@@ -490,6 +510,7 @@ template<class T>
 using TStaticFuncPtr = typename TBaseStaticDelegateInstance<T, FDefaultDelegateUserPolicy>::FFuncPtr;
 ```
 
+<a id="section-21"></a>
 ### 6.3 TagsToAttribute 映射表
 
 在 `UAuraAttributeSet` 中建立映射：
@@ -524,8 +545,10 @@ UAuraAttributeSet::UAuraAttributeSet()
 
 ---
 
+<a id="section-22"></a>
 ## 七、属性广播与动态更新（9.18~9.21）
 
+<a id="section-23"></a>
 ### 7.1 委托声明：FAttributeInfoSignature（9.18）
 
 ```cpp
@@ -537,6 +560,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAttributeInfoSignature, const FAura
 - **Multicast**：多个监听者（每个属性行 Widget 各自绑定）
 - **OneParam**：广播一个 `FAuraAttributeInfo` 结构体
 
+<a id="section-24"></a>
 ### 7.2 BroadcastInitialValues 通用循环（9.20）
 
 **核心思路：** 不手动为每个属性写重复代码，而是遍历 `TagsToAttribute` 映射表，一次性广播所有属性。
@@ -576,6 +600,7 @@ void UAttributeMenuWidgetController::BroadcastAttributeInfo(
 
 > **设计优势：** 以后添加新属性时，只需在 `TagsToAttribute` 映射中添加一行，无需修改广播逻辑。实现了**开闭原则（OCP）**。
 
+<a id="section-25"></a>
 ### 7.3 BindCallbacksToDependencies Lambda 捕获（9.21）
 
 **问题：** 属性值变化时需要实时更新 UI，不能只依赖初始广播。
@@ -614,8 +639,10 @@ void UAttributeMenuWidgetController::BindCallbacksToDependencies()
 
 ---
 
+<a id="section-26"></a>
 ## 八、蓝图端实现（9.19）
 
+<a id="section-27"></a>
 ### 8.1 TextValueRow 添加 AttributeTag 变量
 
 在 `WBP_TextValueRow` 基类蓝图中添加 `AttributeTag` 变量（类型：`FGameplayTag`），使每一行都能自我识别：
@@ -627,6 +654,7 @@ WBP_TextValueRow
   └── Value (TextBlock)            ← 属性数值
 ```
 
+<a id="section-28"></a>
 ### 8.2 属性菜单初始化流程
 
 在 `WBP_AttributeMenu` 的事件图表中：
@@ -664,8 +692,10 @@ AttributeInfoDelegate.Broadcast(Info)
 
 ---
 
+<a id="section-29"></a>
 ## 九、新增/修改文件清单
 
+<a id="section-30"></a>
 ### 新增文件（C++）
 
 | 文件 | 说明 |
@@ -681,6 +711,7 @@ AttributeInfoDelegate.Broadcast(Info)
 | `Public/AbilitySystem/AuraAbilitySystemLibrary.h` | 蓝图函数库声明 |
 | `Private/AbilitySystem/AuraAbilitySystemLibrary.cpp` | GetOverlayWidgetController + GetAttributeMenuWidgetController |
 
+<a id="section-31"></a>
 ### 修改文件（C++）
 
 | 文件 | 变更内容 |
@@ -693,6 +724,7 @@ AttributeInfoDelegate.Broadcast(Info)
 | `AuraWidgetController.cpp` | 对应更新变量名 |
 | `AuraAbilitySystemComponent.cpp` | 添加 `AuraGameplayTags.h` 头文件 |
 
+<a id="section-32"></a>
 ### 配置文件修改
 
 | 文件 | 变更 |
@@ -702,8 +734,10 @@ AttributeInfoDelegate.Broadcast(Info)
 
 ---
 
+<a id="section-33"></a>
 ## 十、知识点总结
 
+<a id="section-34"></a>
 ### 核心设计模式
 
 | 模式 | 应用场景 | 关键实现 |
@@ -714,6 +748,7 @@ AttributeInfoDelegate.Broadcast(Info)
 | **函数库模式** | `UAuraAbilitySystemLibrary` | 静态蓝图函数简化跨层访问 |
 | **映射表模式** | `TagsToAttribute` | Tag → 函数指针的 TMap |
 
+<a id="section-35"></a>
 ### 关键技术点
 
 1. **原生 GameplayTag vs 配置文件 Tag：** 原生 Tag 在 C++ 中注册，提供编译期类型安全；配置文件 Tag 更适合纯蓝图/策划配置的场景。
@@ -730,6 +765,7 @@ AttributeInfoDelegate.Broadcast(Info)
 
 7. **蓝图函数库的 WorldContextObject 模式：** 静态函数无法直接访问世界对象，需要 `WorldContextObject` 作为追踪锚点，通过 `UGameplayStatics::GetPlayerController` 逐步获取所需对象。
 
+<a id="section-36"></a>
 ### 数据流向图
 
 ```mermaid

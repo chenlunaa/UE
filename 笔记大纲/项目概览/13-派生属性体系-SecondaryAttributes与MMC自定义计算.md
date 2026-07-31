@@ -9,46 +9,47 @@
 
 ## 目录
 
-- [一、整体目标：构建派生属性体系](#一整体目标构建派生属性体系)
-- [二、属性分类体系设计（8.6）](#二属性分类体系设计86)
-  - [2.1 三类属性的划分](#21-三类属性的划分)
-  - [2.2 Primary Attributes（主属性）](#22-primary-attributes主属性)
-  - [2.3 Secondary Attributes（次级属性）](#23-secondary-attributes次级属性)
-  - [2.4 Vital Attributes（核心属性）](#24-vital-attributes核心属性)
-- [三、基于属性的修饰符（Attribute-Based Modifier）（8.3~8.5）](#三基于属性的修饰符attribute-based-modifier8385)
-  - [3.1 四种修饰符强度计算类型](#31-四种修饰符强度计算类型)
-  - [3.2 Attribute-Based 的核心参数](#32-attribute-based-的核心参数)
-  - [3.3 计算公式](#33-计算公式)
-  - [3.4 修饰符运算顺序（重要！）](#34-修饰符运算顺序重要)
-  - [3.5 多修饰符混合运算示例](#35-多修饰符混合运算示例)
-- [四、无限游戏效果与派生属性（8.7）](#四无限游戏效果与派生属性87)
-  - [4.1 派生属性的核心原理](#41-派生属性的核心原理)
-  - [4.2 无限持续（Infinite）GE 的配置要点](#42-无限持续infinitege-的配置要点)
-  - [4.3 代码重构：ApplyEffectToSelf 通用函数](#43-代码重构applyeffecttoself-通用函数)
-  - [4.4 InitializeDefaultAttributes 统一入口](#44-initializedefaultattributes-统一入口)
-- [五、CombatInterface 战斗接口（8.8~8.9）](#五combatinterface-战斗接口8889)
-  - [5.1 为什么需要 CombatInterface](#51-为什么需要-combatinterface)
-  - [5.2 接口设计](#52-接口设计)
-  - [5.3 PlayerState 存储等级](#53-playerstate-存储等级)
-  - [5.4 AuraEnemy 存储等级](#54-auraenemy-存储等级)
-  - [5.5 各角色类的实现](#55-各角色类的实现)
-- [六、MMC 自定义计算类（8.8~8.10）](#六mmc-自定义计算类88810)
-  - [6.1 为什么需要 MMC](#61-为什么需要-mmc)
-  - [6.2 MMC 与 Attribute-Based 的对比](#62-mmc-与-attribute-based-的对比)
-  - [6.3 MMC_MaxHealth 实现](#63-mmc_maxhealth-实现)
-  - [6.4 MMC_MaxMana 实现](#64-mmc_maxmana-实现)
-  - [6.5 MMC 的使用方式](#65-mmc-的使用方式)
-- [七、AuraAbilitySystemComponent 委托系统（补充提交）](#七auraabilitysystemcomponent-委托系统补充提交)
-  - [7.1 EffectAssetTags 多播委托](#71-effectassettags-多播委托)
-  - [7.2 AbilityActorInfoSet 初始化回调](#72-abilityactorinfoset-初始化回调)
-- [八、Vital Attributes 初始化（8.11）](#八vital-attributes-初始化811)
-  - [8.1 设计思路](#81-设计思路)
-  - [8.2 GE_VitalAttributes 配置](#82-ge_vitalattributes-配置)
-- [九、新增/修改文件清单](#九新增修改文件清单)
-- [十、知识点总结](#十知识点总结)
+- [一、整体目标：构建派生属性体系](#section-3)
+- [二、属性分类体系设计（8.6）](#section-4)
+  - [2.1 三类属性的划分](#section-5)
+  - [2.2 Primary Attributes（主属性）](#section-6)
+  - [2.3 Secondary Attributes（次级属性）](#section-7)
+  - [2.4 Vital Attributes（核心属性）](#section-8)
+- [三、基于属性的修饰符（Attribute-Based Modifier）（8.3~8.5）](#section-9)
+  - [3.1 四种修饰符强度计算类型](#section-10)
+  - [3.2 Attribute-Based 的核心参数](#section-11)
+  - [3.3 计算公式](#section-12)
+  - [3.4 修饰符运算顺序（重要！）](#section-13)
+  - [3.5 多修饰符混合运算示例](#section-14)
+- [四、无限游戏效果与派生属性（8.7）](#section-15)
+  - [4.1 派生属性的核心原理](#section-16)
+  - [4.2 无限持续（Infinite）GE 的配置要点](#section-17)
+  - [4.3 代码重构：ApplyEffectToSelf 通用函数](#section-18)
+  - [4.4 InitializeDefaultAttributes 统一入口](#section-19)
+- [五、CombatInterface 战斗接口（8.8~8.9）](#section-20)
+  - [5.1 为什么需要 CombatInterface](#section-21)
+  - [5.2 接口设计](#section-22)
+  - [5.3 PlayerState 存储等级](#section-23)
+  - [5.4 AuraEnemy 存储等级](#section-24)
+  - [5.5 各角色类的实现](#section-25)
+- [六、MMC 自定义计算类（8.8~8.10）](#section-26)
+  - [6.1 为什么需要 MMC](#section-27)
+  - [6.2 MMC 与 Attribute-Based 的对比](#section-28)
+  - [6.3 MMC_MaxHealth 实现](#section-29)
+  - [6.4 MMC_MaxMana 实现](#section-30)
+  - [6.5 MMC 的使用方式](#section-31)
+- [七、AuraAbilitySystemComponent 委托系统（补充提交）](#section-32)
+  - [7.1 EffectAssetTags 多播委托](#section-33)
+  - [7.2 AbilityActorInfoSet 初始化回调](#section-34)
+- [八、Vital Attributes 初始化（8.11）](#section-35)
+  - [8.1 设计思路](#section-36)
+  - [8.2 GE_VitalAttributes 配置](#section-37)
+- [九、新增/修改文件清单](#section-38)
+- [十、知识点总结](#section-42)
 
 ---
 
+<a id="section-3"></a>
 ## 一、整体目标：构建派生属性体系
 
 本次提交的核心目标是建立一个完整的 RPG 属性系统，其中属性之间存在依赖/派生关系：
@@ -79,8 +80,10 @@ Primary Attributes (主属性)
 
 ---
 
+<a id="section-4"></a>
 ## 二、属性分类体系设计（8.6）
 
+<a id="section-5"></a>
 ### 2.1 三类属性的划分
 
 | 分类 | 特点 | 初始化方式 |
@@ -89,6 +92,7 @@ Primary Attributes (主属性)
 | **Secondary Attributes** | 依赖主属性或其他次级属性 | 无限 GE + Attribute-Based Modifier 自动派生 |
 | **Vital Attributes** | 有当前值/最大值之分 | 瞬时 GE 初始化为对应最大值 |
 
+<a id="section-6"></a>
 ### 2.2 Primary Attributes（主属性）
 
 ```cpp
@@ -107,6 +111,7 @@ UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_Vigor, Category = "Primary 
 FGameplayAttributeData Vigor;       // 提升生命值
 ```
 
+<a id="section-7"></a>
 ### 2.3 Secondary Attributes（次级属性）
 
 次级属性共 10 个，每个都通过**无限 GE + 覆盖操作**从其他属性派生：
@@ -124,6 +129,7 @@ FGameplayAttributeData Vigor;       // 提升生命值
 | MaxHealth | Vigor + Level | MMC 计算 | 生命值上限 |
 | MaxMana | Intelligence + Level | MMC 计算 | 法力值上限 |
 
+<a id="section-8"></a>
 ### 2.4 Vital Attributes（核心属性）
 
 ```cpp
@@ -139,8 +145,10 @@ FGameplayAttributeData Mana;    // 当前法力值
 
 ---
 
+<a id="section-9"></a>
 ## 三、基于属性的修饰符（Attribute-Based Modifier）（8.3~8.5）
 
+<a id="section-10"></a>
 ### 3.1 四种修饰符强度计算类型
 
 | 类型 | 说明 | 使用场景 |
@@ -150,6 +158,7 @@ FGameplayAttributeData Mana;    // 当前法力值
 | **Custom Calculation Class** | 自定义 MMC 类，任意复杂计算 | 需要访问非属性变量（如等级） |
 | **Set By Caller** | 由调用者设置 | 运行时动态传入值 |
 
+<a id="section-11"></a>
 ### 3.2 Attribute-Based 的核心参数
 
 ```
@@ -166,6 +175,7 @@ FGameplayAttributeData Mana;    // 当前法力值
 | **预乘加性值** | Pre Multiply Additive Value | 在乘以系数前加到属性值上 |
 | **后乘加性值** | Post Multiply Additive Value | 在乘以系数后加到结果上 |
 
+<a id="section-12"></a>
 ### 3.3 计算公式
 
 ```
@@ -179,6 +189,7 @@ FGameplayAttributeData Mana;    // 当前法力值
 (9 + 3) × 0.1 + 1 = 12 × 0.1 + 1 = 1.2 + 1 = 2.2
 ```
 
+<a id="section-13"></a>
 ### 3.4 修饰符运算顺序（重要！）
 
 **同一个 GE 中的多个修饰符按数组顺序依次执行**，每个修饰符在前一个结果上操作：
@@ -192,6 +203,7 @@ FGameplayAttributeData Mana;    // 当前法力值
 - 修饰符2：×Strength(10) → 190
 - 修饰符3：÷Resilience(12) → 15.83
 
+<a id="section-14"></a>
 ### 3.5 多修饰符混合运算示例
 
 ```
@@ -209,8 +221,10 @@ Health=10, Vigor=9, Strength=10, Resilience=12
 
 ---
 
+<a id="section-15"></a>
 ## 四、无限游戏效果与派生属性（8.7）
 
+<a id="section-16"></a>
 ### 4.1 派生属性的核心原理
 
 派生属性的关键：**无限持续的 GE + 覆盖（Override）操作**
@@ -224,6 +238,7 @@ Health=10, Vigor=9, Strength=10, Resilience=12
 5. 每当基础属性变化时，派生属性自动重算
 ```
 
+<a id="section-17"></a>
 ### 4.2 无限持续（Infinite）GE 的配置要点
 
 | 配置项 | 设置 | 原因 |
@@ -234,6 +249,7 @@ Health=10, Vigor=9, Strength=10, Resilience=12
 | Snapshot | **取消勾选** | 实时响应属性变化 |
 | Attribute Source | Target | 从目标自身获取属性 |
 
+<a id="section-18"></a>
 ### 4.3 代码重构：ApplyEffectToSelf 通用函数
 
 将原先两个几乎一样的函数（`InitializePrimaryAttributes` / `InitializeSecondaryAttributes`）重构为一个通用函数：
@@ -255,6 +271,7 @@ void AAuraCharacterBase::ApplyEffectToSelf(TSubclassOf<UGameplayEffect> const Ga
 }
 ```
 
+<a id="section-19"></a>
 ### 4.4 InitializeDefaultAttributes 统一入口
 
 ```cpp
@@ -270,8 +287,10 @@ void AAuraCharacterBase::InitializeDefaultAttributes() const
 
 ---
 
+<a id="section-20"></a>
 ## 五、CombatInterface 战斗接口（8.8~8.9）
 
+<a id="section-21"></a>
 ### 5.1 为什么需要 CombatInterface
 
 MMC 自定义计算需要访问**玩家等级**，但等级不是属性（不在 AttributeSet 中）：
@@ -279,6 +298,7 @@ MMC 自定义计算需要访问**玩家等级**，但等级不是属性（不在
 - 敌人等级存储在 `AuraEnemy` 中
 - MMC 不应该依赖具体类，应依赖抽象（接口）
 
+<a id="section-22"></a>
 ### 5.2 接口设计
 
 ```cpp
@@ -297,6 +317,7 @@ public:
 };
 ```
 
+<a id="section-23"></a>
 ### 5.3 PlayerState 存储等级
 
 ```cpp
@@ -321,6 +342,7 @@ void AAuraPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 }
 ```
 
+<a id="section-24"></a>
 ### 5.4 AuraEnemy 存储等级
 
 ```cpp
@@ -332,6 +354,7 @@ protected:
 
 > 敌人等级不需要复制（Replicated），因为相关计算仅在服务器端执行。
 
+<a id="section-25"></a>
 ### 5.5 各角色类的实现
 
 ```cpp
@@ -358,8 +381,10 @@ int32 AAuraCharacter::GetPlayerLevel()
 
 ---
 
+<a id="section-26"></a>
 ## 六、MMC 自定义计算类（8.8~8.10）
 
+<a id="section-27"></a>
 ### 6.1 为什么需要 MMC
 
 当属性计算需要依赖**非属性变量**（如玩家等级）时，Attribute-Based Modifier 无法满足需求：
@@ -375,6 +400,7 @@ MMC 的优势：
   ✅ 可以：实现任意复杂的计算逻辑
 ```
 
+<a id="section-28"></a>
 ### 6.2 MMC 与 Attribute-Based 的对比
 
 | 特性 | Attribute Based | MMC (Custom Calculation) |
@@ -385,6 +411,7 @@ MMC 的优势：
 | 配置复杂度 | 低 | 中 |
 | 曲线表支持 | ❌ | ❌（需配合 Scalable Float） |
 
+<a id="section-29"></a>
 ### 6.3 MMC_MaxHealth 实现
 
 ```cpp
@@ -434,6 +461,7 @@ float UMMC_Max_Health::CalculateBaseMagnitude_Implementation(const FGameplayEffe
 }
 ```
 
+<a id="section-30"></a>
 ### 6.4 MMC_MaxMana 实现
 
 ```cpp
@@ -460,6 +488,7 @@ float UMMC_MaxMana::CalculateBaseMagnitude_Implementation(const FGameplayEffectS
 }
 ```
 
+<a id="section-31"></a>
 ### 6.5 MMC 的使用方式
 
 在 GE 的 Modifier 中：
@@ -468,8 +497,10 @@ float UMMC_MaxMana::CalculateBaseMagnitude_Implementation(const FGameplayEffectS
 
 ---
 
+<a id="section-32"></a>
 ## 七、AuraAbilitySystemComponent 委托系统（补充提交）
 
+<a id="section-33"></a>
 ### 7.1 EffectAssetTags 多播委托
 
 ```cpp
@@ -491,6 +522,7 @@ protected:
 };
 ```
 
+<a id="section-34"></a>
 ### 7.2 AbilityActorInfoSet 初始化回调
 
 ```cpp
@@ -515,8 +547,10 @@ void UAuraAbilitySystemComponent::EffectApplied(UAbilitySystemComponent* Ability
 
 ---
 
+<a id="section-35"></a>
 ## 八、Vital Attributes 初始化（8.11）
 
+<a id="section-36"></a>
 ### 8.1 设计思路
 
 核心属性（Health/Mana）需要在 Secondary Attributes 初始化完成后，设置为对应最大值：
@@ -532,6 +566,7 @@ void UAuraAbilitySystemComponent::EffectApplied(UAbilitySystemComponent* Ability
   3. Vital Attributes GE 最后执行 → Health = MaxHealth, Mana = MaxMana
 ```
 
+<a id="section-37"></a>
 ### 8.2 GE_VitalAttributes 配置
 
 ```
@@ -544,6 +579,7 @@ GE_VitalAttributes（瞬时 Instant）:
 
 ---
 
+<a id="section-38"></a>
 ## 九、新增/修改文件清单
 
 ### 修改的文件
@@ -580,6 +616,7 @@ GE_VitalAttributes（瞬时 Instant）:
 
 ---
 
+<a id="section-42"></a>
 ## 十、知识点总结
 
 ### 核心概念

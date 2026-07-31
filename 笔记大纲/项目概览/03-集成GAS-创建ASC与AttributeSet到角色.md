@@ -1,3 +1,4 @@
+<a id="section-1"></a>
 # UE5 学习笔记 — 第四次提交
 
 > 📦 Commit `222ee73`：添加 AbilitySystemComponent 和 AttributeSet  
@@ -6,43 +7,46 @@
 
 ---
 
+<a id="section-2"></a>
 ## 目录
 
-- [UE5 学习笔记 — 第四次提交](#ue5-学习笔记--第四次提交)
-  - [目录](#目录)
-  - [一、GAS（Gameplay Ability System）概述](#一gasgameplay-ability-system概述)
-    - [1.1 什么是 GAS？](#11-什么是-gas)
-    - [1.2 GAS 的核心组件](#12-gas-的核心组件)
-    - [1.3 启用 Gameplay Abilities 插件](#13-启用-gameplay-abilities-插件)
-  - [二、创建 PlayerState（玩家状态）](#二创建-playerstate玩家状态)
-    - [2.1 为什么需要自定义 PlayerState？](#21-为什么需要自定义-playerstate)
-    - [2.2 AAuraPlayerState 的 C++ 实现](#22-aauraplayerstate-的-c-实现)
-    - [2.3 NetUpdateFrequency 详解](#23-netupdatefrequency-详解)
-    - [2.4 蓝图配置](#24-蓝图配置)
-  - [三、创建 AbilitySystemComponent 和 AttributeSet 类](#三创建-abilitysystemcomponent-和-attributeset-类)
-    - [3.1 类的命名规范](#31-类的命名规范)
-    - [3.2 UMy_AuraAbilitySystemComponent（自定义 ASC）](#32-umy_auraabilitysystemcomponent自定义-asc)
-    - [3.3 UAuraAttributeSet（自定义属性集）](#33-uauraattributeset自定义属性集)
-  - [四、Build.cs 模块依赖配置](#四buildcs-模块依赖配置)
-    - [4.1 模块依赖调整](#41-模块依赖调整)
-    - [4.2 Public vs Private 依赖的区别](#42-public-vs-private-依赖的区别)
-  - [五、将 ASC 和 AttributeSet 添加到角色体系](#五将-asc-和-attributeset-添加到角色体系)
-    - [5.1 两种拥有者模式](#51-两种拥有者模式)
-    - [5.2 AuraCharacterBase 添加指针](#52-auracharacterbase-添加指针)
-    - [5.3 AAuraEnemy 中构造 ASC 和 AttributeSet](#53-aauraenemy-中构造-asc-和-attributeset)
-    - [5.4 AAuraPlayerState 中构造 ASC 和 AttributeSet](#54-aauraplayerstate-中构造-asc-和-attributeset)
-  - [六、实现 IAbilitySystemInterface 接口](#六实现-iabilitysysteminterface-接口)
-    - [6.1 接口的作用](#61-接口的作用)
-    - [6.2 AuraCharacterBase 实现接口](#62-auracharacterbase-实现接口)
-    - [6.3 AAuraPlayerState 也实现接口](#63-aauraplayerstate-也实现接口)
-    - [6.4 GetAttributeSet 辅助获取器](#64-getattributeset-辅助获取器)
-  - [七、新增 / 修改文件清单](#七新增--修改文件清单)
-  - [八、知识点总结](#八知识点总结)
+- [UE5 学习笔记 — 第四次提交](#section-1)
+  - [目录](#section-2)
+  - [一、GAS（Gameplay Ability System）概述](#section-3)
+    - [1.1 什么是 GAS？](#section-4)
+    - [1.2 GAS 的核心组件](#section-5)
+    - [1.3 启用 Gameplay Abilities 插件](#section-6)
+  - [二、创建 PlayerState（玩家状态）](#section-7)
+    - [2.1 为什么需要自定义 PlayerState？](#section-8)
+    - [2.2 AAuraPlayerState 的 C++ 实现](#section-9)
+    - [2.3 NetUpdateFrequency 详解](#section-10)
+    - [2.4 蓝图配置](#section-11)
+  - [三、创建 AbilitySystemComponent 和 AttributeSet 类](#section-12)
+    - [3.1 类的命名规范](#section-13)
+    - [3.2 UMy_AuraAbilitySystemComponent（自定义 ASC）](#section-14)
+    - [3.3 UAuraAttributeSet（自定义属性集）](#section-15)
+  - [四、Build.cs 模块依赖配置](#section-16)
+    - [4.1 模块依赖调整](#section-17)
+    - [4.2 Public vs Private 依赖的区别](#section-18)
+  - [五、将 ASC 和 AttributeSet 添加到角色体系](#section-19)
+    - [5.1 两种拥有者模式](#section-20)
+    - [5.2 AuraCharacterBase 添加指针](#section-21)
+    - [5.3 AAuraEnemy 中构造 ASC 和 AttributeSet](#section-22)
+    - [5.4 AAuraPlayerState 中构造 ASC 和 AttributeSet](#section-23)
+  - [六、实现 IAbilitySystemInterface 接口](#section-24)
+    - [6.1 接口的作用](#section-25)
+    - [6.2 AuraCharacterBase 实现接口](#section-26)
+    - [6.3 AAuraPlayerState 也实现接口](#section-27)
+    - [6.4 GetAttributeSet 辅助获取器](#section-28)
+  - [七、新增 / 修改文件清单](#section-29)
+  - [八、知识点总结](#section-30)
 
 ---
 
+<a id="section-3"></a>
 ## 一、GAS（Gameplay Ability System）概述
 
+<a id="section-4"></a>
 ### 1.1 什么是 GAS？
 
 **Gameplay Ability System（GAS）** 是虚幻引擎内置的一套强大框架，专门用于构建复杂的游戏玩法逻辑。它被广泛应用于 AAA 级游戏（如《堡垒之夜》《Paragon》等），提供了：
@@ -52,6 +56,7 @@
 - **效果系统**（Effects）：处理增益/减益（Buff/Debuff）、伤害计算等
 - **标签系统**（Tags）：用层级标签来标记和查询游戏状态
 
+<a id="section-5"></a>
 ### 1.2 GAS 的核心组件
 
 | 组件                           | 类名                        | 作用                            | 数量关系                                              |
@@ -81,6 +86,7 @@
 
 6. **同步**：**AttributeSet** 把最终修改好的 `Health = 0` 写入内存，并自动通过网络同步给所有客户端。
 
+<a id="section-6"></a>
 ### 1.3 启用 Gameplay Abilities 插件
 
 GAS 是 UE5 的一个**插件**，默认不启用，需要手动开启：
@@ -92,8 +98,10 @@ GAS 是 UE5 的一个**插件**，默认不启用，需要手动开启：
 
 ---
 
+<a id="section-7"></a>
 ## 二、创建 PlayerState（玩家状态）
 
+<a id="section-8"></a>
 ### 2.1 为什么需要自定义 PlayerState？
 
 在 GAS 架构中，**玩家控制的角色**（如主角）的 ASC 和 AttributeSet 通常放在 **PlayerState** 上，而不是直接放在 Character 上。原因：
@@ -108,6 +116,7 @@ GAS 是 UE5 的一个**插件**，默认不启用，需要手动开启：
 
 而对于 **AI 控制的敌人**，ASC 和 AttributeSet 直接放在 Character 上即可——敌人不需要重生保留状态。
 
+<a id="section-9"></a>
 ### 2.2 AAuraPlayerState 的 C++ 实现
 
 **头文件** `Source/Aura/Public/Player/AuraPlayerState.h`：
@@ -157,6 +166,7 @@ UAbilitySystemComponent* AAuraPlayerState::GetAbilitySystemComponent() const
 }
 ```
 
+<a id="section-10"></a>
 ### 2.3 NetUpdateFrequency 详解
 
 ```cpp
@@ -175,6 +185,7 @@ NetUpdateFrequency = 100.f;
 
 > ⚠️ 服务器会**尽量**满足这个频率，但受网络带宽和 CPU 限制，实际频率可能低于设定值。
 
+<a id="section-11"></a>
 ### 2.4 蓝图配置
 
 1. 基于 `AAuraPlayerState` 创建蓝图类 `BP_AuraPlayerState`，放在 `Content/Blueprints/Player/`
@@ -183,8 +194,10 @@ NetUpdateFrequency = 100.f;
 
 ---
 
+<a id="section-12"></a>
 ## 三、创建 AbilitySystemComponent 和 AttributeSet 类
 
+<a id="section-13"></a>
 ### 3.1 类的命名规范
 
 在大型 UE 项目中，类名通常带有**项目前缀**，用于：
@@ -200,6 +213,7 @@ NetUpdateFrequency = 100.f;
 
 本项目已统一使用 `Aura` 前缀：`AAuraCharacter`、`AAuraPlayerController`、`AAuraPlayerState` 等。
 
+<a id="section-14"></a>
 ### 3.2 UMy_AuraAbilitySystemComponent（自定义 ASC）
 
 **头文件** `Source/Aura/Public/AbilitySystem/My_AuraAbilitySystemComponent.h`：
@@ -220,6 +234,7 @@ class AURA_API UMy_AuraAbilitySystemComponent : public UAbilitySystemComponent
 
 > 📝 目前只是一个空子类，后续会在其中添加自定义逻辑（如能力授予、输入绑定等）。创建自定义 ASC 是最佳实践——不要直接使用引擎的 `UAbilitySystemComponent`。
 
+<a id="section-15"></a>
 ### 3.3 UAuraAttributeSet（自定义属性集）
 
 **头文件** `Source/Aura/Public/AbilitySystem/AuraAttributeSet.h`：
@@ -242,8 +257,10 @@ class AURA_API UAuraAttributeSet : public UAttributeSet
 
 ---
 
+<a id="section-16"></a>
 ## 四、Build.cs 模块依赖配置
 
+<a id="section-17"></a>
 ### 4.1 模块依赖调整
 
 在 `Source/Aura/Aura.Build.cs` 中做了以下调整：
@@ -285,6 +302,7 @@ PrivateDependencyModuleNames.AddRange(new string[] {
 
 > 💡 按需添加模块依赖，减少不必要的编译时间和耦合。
 
+<a id="section-18"></a>
 ### 4.2 Public vs Private 依赖的区别
 
 | 依赖类型        | 可见性               | 典型用途               |
@@ -296,8 +314,10 @@ PrivateDependencyModuleNames.AddRange(new string[] {
 
 ---
 
+<a id="section-19"></a>
 ## 五、将 ASC 和 AttributeSet 添加到角色体系
 
+<a id="section-20"></a>
 ### 5.1 两种拥有者模式
 
 本项目采用**混合架构**：
@@ -319,6 +339,7 @@ PrivateDependencyModuleNames.AddRange(new string[] {
 └─────────────────┴───────────────────────────┘
 ```
 
+<a id="section-21"></a>
 ### 5.2 AuraCharacterBase 添加指针
 
 在基类 `AAuraCharacterBase` 中添加两个指针，所有角色子类都会继承：
@@ -343,6 +364,7 @@ protected:
 
 > ⚠️ 注意：这些指针在 `AAuraCharacterBase` 中**不初始化**。对于敌人，在 `AAuraEnemy` 构造函数中初始化；对于玩家，在 `AAuraPlayerState` 中初始化。基类只是提供了统一的访问入口。
 
+<a id="section-22"></a>
 ### 5.3 AAuraEnemy 中构造 ASC 和 AttributeSet
 
 ```cpp
@@ -364,6 +386,7 @@ AAuraEnemy::AAuraEnemy()
 | `SetIsReplicated(true)`       | 标记 ASC 需要网络复制，这样服务器上的能力激活和属性变化才会同步到客户端                      |
 | 子对象名称                         | `"AbilitySystemComponent"` 和 `"AttributeSet"` 是内部名称，用于编辑器显示 |
 
+<a id="section-23"></a>
 ### 5.4 AAuraPlayerState 中构造 ASC 和 AttributeSet
 
 ```cpp
@@ -382,8 +405,10 @@ AAuraPlayerState::AAuraPlayerState()
 
 ---
 
+<a id="section-24"></a>
 ## 六、实现 IAbilitySystemInterface 接口
 
+<a id="section-25"></a>
 ### 6.1 接口的作用
 
 `IAbilitySystemInterface` 是 GAS 框架定义的一个关键接口，只有一个纯虚函数：
@@ -412,6 +437,7 @@ if (IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(SomeActor))
 }
 ```
 
+<a id="section-26"></a>
 ### 6.2 AuraCharacterBase 实现接口
 
 ```cpp
@@ -435,6 +461,7 @@ UAbilitySystemComponent* AAuraCharacterBase::GetAbilitySystemComponent() const
 
 > ⚠️ 对于玩家角色 `AAuraCharacter`，调用 `GetAbilitySystemComponent()` 会返回 `nullptr`，因为指针在 Character 中未初始化。需要在后续步骤中做桥接。
 
+<a id="section-27"></a>
 ### 6.3 AAuraPlayerState 也实现接口
 
 ```cpp
@@ -458,6 +485,7 @@ UAbilitySystemComponent* AAuraPlayerState::GetAbilitySystemComponent() const
 
 > 💡 在 PlayerState 上也实现 `IAbilitySystemInterface` 是一种**便利设计**——某些情况下通过 PlayerState 获取 ASC 比通过 Character 更方便。
 
+<a id="section-28"></a>
 ### 6.4 GetAttributeSet 辅助获取器
 
 虽然不是接口要求，但添加 `GetAttributeSet()` 获取器是一个好习惯：
@@ -470,6 +498,7 @@ UAttributeSet* GetAttributeSet() const { return AttributeSet; }
 
 ---
 
+<a id="section-29"></a>
 ## 七、新增 / 修改文件清单
 
 | 文件                                                                    | 操作    | 说明                                                  |
@@ -489,6 +518,7 @@ UAttributeSet* GetAttributeSet() const { return AttributeSet; }
 
 ---
 
+<a id="section-30"></a>
 ## 八、知识点总结
 
 | 知识点                         | 要点                                                          |

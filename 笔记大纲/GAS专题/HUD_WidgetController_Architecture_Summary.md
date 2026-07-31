@@ -8,18 +8,19 @@
 
 ## 目录
 
-- [一、架构全景：HUD 到底是什么](#一架构全景hud-到底是什么)
-- [二、为什么必须有一个"中间层"（Controller）](#二为什么必须有一个中间层controller)
-- [三、HUD 的三重职责](#三hud-的三重职责)
-- [四、WidgetController 的虚函数设计](#四widgetcontroller-的虚函数设计)
-- [五、两层委托系统：引擎委托 vs 项目委托](#五两层委托系统引擎委托-vs-项目委托)
-- [六、完整的调用链路](#六完整的调用链路)
-- [七、设计优势总结](#七设计优势总结)
-- [八、扩展指南：新增一个 UI 面板的标准流程](#八扩展指南新增一个-ui-面板的标准流程)
-- [九、常见误区与避坑](#九常见误区与避坑)
+- [一、架构全景：HUD 到底是什么](#section-3)
+- [二、为什么必须有一个"中间层"（Controller）](#section-4)
+- [三、HUD 的三重职责](#section-7)
+- [四、WidgetController 的虚函数设计](#section-11)
+- [五、两层委托系统：引擎委托 vs 项目委托](#section-15)
+- [六、完整的调用链路](#section-19)
+- [七、设计优势总结](#section-22)
+- [八、扩展指南：新增一个 UI 面板的标准流程](#section-26)
+- [九、常见误区与避坑](#section-30)
 
 ---
 
+<a id="section-3"></a>
 ## 一、架构全景：HUD 到底是什么
 
 在 UE 的默认认知中，HUD（Head-Up Display）常被理解为"显示血条、准星、小地图的 2D 层"。但在 Aura 项目中，**HUD 被重新定义为整个 UI 系统的"服务注册中心"**。
@@ -95,6 +96,7 @@
 
 ---
 
+<a id="section-4"></a>
 ## 二、为什么必须有一个"中间层"（Controller）
 
 ### 2.1 没有 Controller 的问题
@@ -157,6 +159,7 @@ SetProgressBarPercent(NewHealth / MaxHealth)
 
 ---
 
+<a id="section-7"></a>
 ## 三、HUD 的三重职责
 
 ### 3.1 职责一：生命周期宿主（Owner）
@@ -286,6 +289,7 @@ WBP_HealthGlobe
 
 ---
 
+<a id="section-11"></a>
 ## 四、WidgetController 的虚函数设计
 
 ### 4.1 基类定义接口
@@ -418,6 +422,7 @@ void UAttributeMenuWidgetController::BroadcastInitialValues()
 
 ---
 
+<a id="section-15"></a>
 ## 五、两层委托系统：引擎委托 vs 项目委托
 
 ### 5.1 第一层：GAS 属性变化委托（引擎层）
@@ -500,6 +505,7 @@ HealthChanged() ──→ OnHealthChange.Broadcast() ──→ SetProgressBarPer
 
 ---
 
+<a id="section-19"></a>
 ## 六、完整的调用链路
 
 ### 6.1 初始化阶段（首次打开 UI）
@@ -581,6 +587,7 @@ OnHealthChange.Broadcast(75.f)
 
 ---
 
+<a id="section-22"></a>
 ## 七、设计优势总结
 
 ### 7.1 解耦优势
@@ -627,6 +634,7 @@ ASC ──→ Controller ──→ Widget
 
 ---
 
+<a id="section-26"></a>
 ## 八、扩展指南：新增一个 UI 面板的标准流程
 
 以"技能树面板（SkillTree）"为例：
@@ -719,6 +727,7 @@ UXXXWidgetController* AAuraHUD::GetXXXWidgetController(...)
 
 ---
 
+<a id="section-30"></a>
 ## 九、常见误区与避坑
 
 ### 9.1 误区一：在蓝图中直接创建 Controller

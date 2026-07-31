@@ -8,43 +8,44 @@
 
 ## 目录
 
-- [一、整体目标：建立 GameplayTag 驱动的 UI 消息系统](#一整体目标建立-gameplaytag-驱动的-ui-消息系统)
-- [二、GameplayTag 基础概念（7.1~7.3）](#二gameplaytag-基础概念7173)
-  - [2.1 什么是 GameplayTag](#21-什么是-gameplaytag)
-  - [2.2 GameplayTag 的层级结构](#22-gameplaytag-的层级结构)
-  - [2.3 创建 GameplayTag 的三种方式](#23-创建-gameplaytag-的三种方式)
-  - [2.4 MatchesTag 的匹配规则](#24-matchestag-的匹配规则)
-- [三、GameplayEffect 中的标签类型（7.5）](#三gameplayeffect-中的标签类型75)
-  - [3.1 资产标签（Asset Tags）vs 授予标签（Granted Tags）](#31-资产标签asset-tagsvs-授予标签granted-tags)
-  - [3.2 标签叠加 vs 效果叠加](#32-标签叠加-vs-效果叠加)
-  - [3.3 即时效果与标签授予的局限性](#33-即时效果与标签授予的局限性)
-- [四、AbilitySystemComponent 委托系统（7.5~7.6）](#四abilitysystemcomponent-委托系统7576)
-  - [4.1 ASC 中的关键委托概览](#41-asc-中的关键委托概览)
-  - [4.2 OnGameplayEffectAppliedDelegateToSelf](#42-ongameplayeffectapplieddelegatetoself)
-  - [4.3 复制策略对委托的影响](#43-复制策略对委托的影响)
-- [五、AuraAbilitySystemComponent 自定义委托（7.7~7.8）](#五auraabilitysystemcomponent-自定义委托7778)
-  - [5.1 类重命名：My_AuraAbilitySystemComponent → AuraAbilitySystemComponent](#51-类重命名my_auraabilitysystemcomponent--auraabilitysystemcomponent)
-  - [5.2 声明 EffectAssetTags 多播委托](#52-声明-effectassettags-多播委托)
-  - [5.3 在 OnEffectApplied 中广播资产标签](#53-在-oneffectapplied-中广播资产标签)
-  - [5.4 AbilityActorInfoSet 初始化回调](#54-abilityactorinfoset-初始化回调)
-  - [5.5 InitAbilityActorInfo 虚函数重构](#55-initabilityactorinfo-虚函数重构)
-- [六、OverlayWidgetController 重构（7.8~7.11）](#六overlaywidgetcontroller-重构78711)
-  - [6.1 用 Lambda 替换回调函数（7.8 & 7.14）](#61-用-lambda-替换回调函数78--714)
-  - [6.2 统一委托签名：FOnAttributeChangedSignature](#62-统一委托签名fonattributechangedsignature)
-  - [6.3 FUIWidgetRow 结构体与数据表（7.10~7.11）](#63-fuiwidgetrow-结构体与数据表710711)
-  - [6.4 绑定 EffectAssetTags 委托](#64-绑定-effectassettags-委托)
-  - [6.5 GetDataTableRowByTag 模板函数](#65-getdatatablerowbytag-模板函数)
-  - [6.6 MessageWidgetRowDelegate 广播](#66-messagewidgetrowdelegate-广播)
-  - [6.7 MatchesTag 过滤非消息标签](#67-matchestag-过滤非消息标签)
-- [七、属性钳制 Bug 修复（7.16）](#七属性钳制-bug-修复716)
-  - [7.1 Bug 复现：PreAttributeChange 中 Clamp 的局限性](#71-bug-复现preattributechange-中-clamp-的局限性)
-  - [7.2 根本原因：NewValue 是临时值](#72-根本原因newvalue-是临时值)
-  - [7.3 解决方案：PostGameplayEffectExecute 中 SetHealth/SetMana](#73-解决方案postgameplayeffectexecute-中-sethealthsetmana)
-- [八、新增/修改文件清单](#八新增修改文件清单)
-- [九、知识点总结](#九知识点总结)
+- [一、整体目标：建立 GameplayTag 驱动的 UI 消息系统](#section-3)
+- [二、GameplayTag 基础概念（7.1~7.3）](#section-4)
+  - [2.1 什么是 GameplayTag](#section-5)
+  - [2.2 GameplayTag 的层级结构](#section-6)
+  - [2.3 创建 GameplayTag 的三种方式](#section-7)
+  - [2.4 MatchesTag 的匹配规则](#section-8)
+- [三、GameplayEffect 中的标签类型（7.5）](#section-9)
+  - [3.1 资产标签（Asset Tags）vs 授予标签（Granted Tags）](#section-10)
+  - [3.2 标签叠加 vs 效果叠加](#section-11)
+  - [3.3 即时效果与标签授予的局限性](#section-12)
+- [四、AbilitySystemComponent 委托系统（7.5~7.6）](#section-13)
+  - [4.1 ASC 中的关键委托概览](#section-14)
+  - [4.2 OnGameplayEffectAppliedDelegateToSelf](#section-15)
+  - [4.3 复制策略对委托的影响](#section-16)
+- [五、AuraAbilitySystemComponent 自定义委托（7.7~7.8）](#section-17)
+  - [5.1 类重命名：My_AuraAbilitySystemComponent → AuraAbilitySystemComponent](#section-18)
+  - [5.2 声明 EffectAssetTags 多播委托](#section-19)
+  - [5.3 在 OnEffectApplied 中广播资产标签](#section-20)
+  - [5.4 AbilityActorInfoSet 初始化回调](#section-21)
+  - [5.5 InitAbilityActorInfo 虚函数重构](#section-22)
+- [六、OverlayWidgetController 重构（7.8~7.11）](#section-23)
+  - [6.1 用 Lambda 替换回调函数（7.8 & 7.14）](#section-24)
+  - [6.2 统一委托签名：FOnAttributeChangedSignature](#section-25)
+  - [6.3 FUIWidgetRow 结构体与数据表（7.10~7.11）](#section-26)
+  - [6.4 绑定 EffectAssetTags 委托](#section-27)
+  - [6.5 GetDataTableRowByTag 模板函数](#section-28)
+  - [6.6 MessageWidgetRowDelegate 广播](#section-29)
+  - [6.7 MatchesTag 过滤非消息标签](#section-30)
+- [七、属性钳制 Bug 修复（7.16）](#section-31)
+  - [7.1 Bug 复现：PreAttributeChange 中 Clamp 的局限性](#section-32)
+  - [7.2 根本原因：NewValue 是临时值](#section-33)
+  - [7.3 解决方案：PostGameplayEffectExecute 中 SetHealth/SetMana](#section-34)
+- [八、新增/修改文件清单](#section-35)
+- [九、知识点总结](#section-36)
 
 ---
 
+<a id="section-3"></a>
 ## 一、整体目标：建立 GameplayTag 驱动的 UI 消息系统
 
 本次提交的核心目标是利用 GameplayTag 系统，实现"捡起道具 → 在 HUD 上显示对应消息"的完整数据链路：
@@ -67,8 +68,10 @@ WBP_Overlay（蓝图绑定）
 
 ---
 
+<a id="section-4"></a>
 ## 二、GameplayTag 基础概念（7.1~7.3）
 
+<a id="section-5"></a>
 ### 2.1 什么是 GameplayTag
 
 GameplayTag 本质上是 **FName** 类型的层级化标签，与 GameplayTagManager 注册。它在 GAS 中至关重要，几乎所有 API 都使用 GameplayTag。
@@ -82,6 +85,7 @@ GameplayTag 本质上是 **FName** 类型的层级化标签，与 GameplayTagMan
 ✅ 用于：输入识别、能力属性、伤害类型、增益/减益消息等
 ```
 
+<a id="section-6"></a>
 ### 2.2 GameplayTag 的层级结构
 
 ```
@@ -104,6 +108,7 @@ Message                       ← 消息层级
 └── ManaCrystal
 ```
 
+<a id="section-7"></a>
 ### 2.3 创建 GameplayTag 的三种方式
 
 | 方式 | 操作 | 存储位置 |
@@ -131,6 +136,7 @@ Message                       ← 消息层级
 +GameplayTagTableList=/Game/BluePrint/AbilitySystem/GamePlayTags/DT_PrimaryAttributes.DT_PrimaryAttributes
 ```
 
+<a id="section-8"></a>
 ### 2.4 MatchesTag 的匹配规则
 
 ```cpp
@@ -146,8 +152,10 @@ MessageTag.MatchesTag(Tag);        // ❌ false — "Message" 不匹配 "Message
 
 ---
 
+<a id="section-9"></a>
 ## 三、GameplayEffect 中的标签类型（7.5）
 
+<a id="section-10"></a>
 ### 3.1 资产标签（Asset Tags）vs 授予标签（Granted Tags）
 
 | 标签类型 | 行为 | 适用场景 |
@@ -162,6 +170,7 @@ MessageTag.MatchesTag(Tag);        // ❌ false — "Message" 不匹配 "Message
   - Granted Tags → 仅持续时间效果有效，即时效果不会授予标签
 ```
 
+<a id="section-11"></a>
 ### 3.2 标签叠加 vs 效果叠加
 
 ```
@@ -174,6 +183,7 @@ MessageTag.MatchesTag(Tag);        // ❌ false — "Message" 不匹配 "Message
   → 标签计数 = 效果实例数（标签会叠加）
 ```
 
+<a id="section-12"></a>
 ### 3.3 即时效果与标签授予的局限性
 
 ```
@@ -188,8 +198,10 @@ MessageTag.MatchesTag(Tag);        // ❌ false — "Message" 不匹配 "Message
 
 ---
 
+<a id="section-13"></a>
 ## 四、AbilitySystemComponent 委托系统（7.5~7.6）
 
+<a id="section-14"></a>
 ### 4.1 ASC 中的关键委托概览
 
 | 委托名称 | 触发时机 | 包含即时效果 | 包含持续效果 |
@@ -202,6 +214,7 @@ MessageTag.MatchesTag(Tag);        // ❌ false — "Message" 不匹配 "Message
 
 > **推荐使用 `OnGameplayEffectAppliedDelegateToSelf`**：它同时覆盖即时和持续效果，是最通用的选择。
 
+<a id="section-15"></a>
 ### 4.2 OnGameplayEffectAppliedDelegateToSelf
 
 ```cpp
@@ -217,6 +230,7 @@ DECLARE_MULTICAST_DELEGATE_ThreeParams(
 // 这包括即时和基于持续时间的 GameplayEffect
 ```
 
+<a id="section-16"></a>
 ### 4.3 复制策略对委托的影响
 
 | 复制模式 | GE 复制到谁 | GameplayCues 复制 | GameplayTags 复制 |
@@ -229,8 +243,10 @@ DECLARE_MULTICAST_DELEGATE_ThreeParams(
 
 ---
 
+<a id="section-17"></a>
 ## 五、AuraAbilitySystemComponent 自定义委托（7.7~7.8）
 
+<a id="section-18"></a>
 ### 5.1 类重命名：My_AuraAbilitySystemComponent → AuraAbilitySystemComponent
 
 ```cpp
@@ -248,6 +264,7 @@ DECLARE_MULTICAST_DELEGATE_ThreeParams(
 - `AuraPlayerState.cpp`：同上
 - `AuraCharacter.cpp`：`Cast<UAuraAbilitySystemComponent>(...)`
 
+<a id="section-19"></a>
 ### 5.2 声明 EffectAssetTags 多播委托
 
 ```cpp
@@ -269,6 +286,7 @@ public:
 
 > **为什么不用 Dynamic 委托**：WidgetController 是 C++ 类，不需要蓝图绑定，使用普通多播委托更轻量。
 
+<a id="section-20"></a>
 ### 5.3 在 OnEffectApplied 中广播资产标签
 
 ```cpp
@@ -284,6 +302,7 @@ void UAuraAbilitySystemComponent::OnEffectApplied(
 }
 ```
 
+<a id="section-21"></a>
 ### 5.4 AbilityActorInfoSet 初始化回调
 
 ```cpp
@@ -308,6 +327,7 @@ AuraEnemy::InitAbilityActorInfo()
   → Cast<UAuraAbilitySystemComponent>(ASC)->AbilityActorInfoSet()
 ```
 
+<a id="section-22"></a>
 ### 5.5 InitAbilityActorInfo 虚函数重构
 
 ```
@@ -324,8 +344,10 @@ AuraEnemy::InitAbilityActorInfo()
 
 ---
 
+<a id="section-23"></a>
 ## 六、OverlayWidgetController 重构（7.8~7.11）
 
+<a id="section-24"></a>
 ### 6.1 用 Lambda 替换回调函数（7.8 & 7.14）
 
 **重构前**（需要4个成员回调函数）：
@@ -359,6 +381,7 @@ AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
 > - `[this]` 捕获 this 指针，使 Lambda 内可访问成员变量/函数
 > - 适合简单回调，避免创建大量成员函数
 
+<a id="section-25"></a>
 ### 6.2 统一委托签名：FOnAttributeChangedSignature
 
 ```cpp
@@ -378,6 +401,7 @@ FOnAttributeChangedSignature OnManaChange;
 FOnAttributeChangedSignature OnMaxManaChange;
 ```
 
+<a id="section-26"></a>
 ### 6.3 FUIWidgetRow 结构体与数据表（7.10~7.11）
 
 ```cpp
@@ -402,6 +426,7 @@ struct FUIWidgetRow : public FTableRowBase
 
 数据表 `MessageWidgetDataTable` 的行结构为 `FUIWidgetRow`，每一行对应一种消息类型。
 
+<a id="section-27"></a>
 ### 6.4 绑定 EffectAssetTags 委托
 
 ```cpp
@@ -423,6 +448,7 @@ Cast<UAuraAbilitySystemComponent>(AbilitySystemComponent)->EffectAssetTags.AddLa
 );
 ```
 
+<a id="section-28"></a>
 ### 6.5 GetDataTableRowByTag 模板函数
 
 ```cpp
@@ -435,6 +461,7 @@ T* UOverlayWidgetController::GetDataTableRowByTag(UDataTable* DataTable, const F
 
 > `FindRow<T>()` 通过 RowName（此处为 Tag 名称）在数据表中查找对应行。
 
+<a id="section-29"></a>
 ### 6.6 MessageWidgetRowDelegate 广播
 
 ```cpp
@@ -448,6 +475,7 @@ FMessageWidgetRowSignature MessageWidgetRowDelegate;
 
 蓝图侧（WBP_Overlay）绑定该委托 → 创建 EffectMessage Widget → 设置图像和文本 → 添加到 Viewport → 播放动画 → 延迟销毁。
 
+<a id="section-30"></a>
 ### 6.7 MatchesTag 过滤非消息标签
 
 ```cpp
@@ -463,8 +491,10 @@ if (Tag.MatchesTag(MessageTag))
 
 ---
 
+<a id="section-31"></a>
 ## 七、属性钳制 Bug 修复（7.16）
 
+<a id="section-32"></a>
 ### 7.1 Bug 复现：PreAttributeChange 中 Clamp 的局限性
 
 ```
@@ -477,6 +507,7 @@ if (Tag.MatchesTag(MessageTag))
       只是修改了"从 Modifier 查询返回的值"，没有真正设置属性值
 ```
 
+<a id="section-33"></a>
 ### 7.2 根本原因：NewValue 是临时值
 
 ```cpp
@@ -490,6 +521,7 @@ void UAuraAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, 
 }
 ```
 
+<a id="section-34"></a>
 ### 7.3 解决方案：PostGameplayEffectExecute 中 SetHealth/SetMana
 
 ```cpp
@@ -520,6 +552,7 @@ void UAuraAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
 
 ---
 
+<a id="section-35"></a>
 ## 八、新增/修改文件清单
 
 | 文件 | 操作 | 说明 |
@@ -543,6 +576,7 @@ void UAuraAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
 
 ---
 
+<a id="section-36"></a>
 ## 九、知识点总结
 
 | 知识点 | 要点 |

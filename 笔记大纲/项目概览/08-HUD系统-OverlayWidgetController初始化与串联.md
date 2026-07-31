@@ -1,3 +1,4 @@
+<a id="section-1"></a>
 # UE5 学习笔记 — 第八次提交
 
 > 📦 Commit `63fa93e`：Overlay Widget Controller 初始化配置（HUD 系统 + 参数结构体 + 控制器连接）  
@@ -6,38 +7,40 @@
 
 ---
 
+<a id="section-2"></a>
 ## 目录
 
-- [UE5 学习笔记 — 第八次提交](#ue5-学习笔记--第八次提交)
-  - [目录](#目录)
-  - [一、整体目标：从关卡蓝图迁移到 HUD 系统](#一整体目标从关卡蓝图迁移到-hud-系统)
-  - [二、AAuraHUD — 自定义 HUD 类（5.5 核心）](#二aaurahud--自定义-hud-类55-核心)
-    - [2.1 为什么需要自定义 HUD](#21-为什么需要自定义-hud)
-    - [2.2 AAuraHUD 成员变量设计](#22-aaurahud-成员变量设计)
-    - [2.3 蓝图侧的配置流程](#23-蓝图侧的配置流程)
-  - [三、FWidgetControllerParams — 四关键变量参数结构体（5.6 核心）](#三fwidgetcontrollerparams--四关键变量参数结构体56-核心)
-    - [3.1 设计动机：一键初始化](#31-设计动机一键初始化)
-    - [3.2 结构体完整代码解析](#32-结构体完整代码解析)
-    - [3.3 SetWidgetControllerParams — 基类赋值函数](#33-setwidgetcontrollerparams--基类赋值函数)
-  - [四、UOverlayWidgetController — 覆盖层专用控制器](#四uoverlaywidgetcontroller--覆盖层专用控制器)
-    - [4.1 继承关系](#41-继承关系)
-    - [4.2 为什么用子类而非直接用基类](#42-为什么用子类而非直接用基类)
-  - [五、AAuraHUD 的核心函数详解](#五aaurahud-的核心函数详解)
-    - [5.1 GetOverlayWidgetController — 单例式获取器](#51-getoverlaywidgetcontroller--单例式获取器)
-    - [5.2 InitOverlay — 总装函数](#52-initoverlay--总装函数)
-  - [六、调用链路：从角色到 HUD 的完整串联](#六调用链路从角色到-hud-的完整串联)
-    - [6.1 InitAbilityActorInfo 中的新增代码](#61-initabilityactorinfo-中的新增代码)
-    - [6.2 为什么选择 InitAbilityActorInfo 作为调用点](#62-为什么选择-initabilityactorinfo-作为调用点)
-    - [6.3 完整调用流程图](#63-完整调用流程图)
-  - [七、多人游戏注意事项（重要！）](#七多人游戏注意事项重要)
-    - [7.1 玩家控制器的有效性](#71-玩家控制器的有效性)
-    - [7.2 check 与 if 的选择原则](#72-check-与-if-的选择原则)
-    - [7.3 AuraPlayerController::BeginPlay 的修复](#73-auraplayercontrollerbeginplay-的修复)
-  - [八、新增/修改文件清单](#八新增修改文件清单)
-  - [九、知识点总结](#九知识点总结)
+- [UE5 学习笔记 — 第八次提交](#section-1)
+  - [目录](#section-2)
+  - [一、整体目标：从关卡蓝图迁移到 HUD 系统](#section-3)
+  - [二、AAuraHUD — 自定义 HUD 类（5.5 核心）](#section-4)
+    - [2.1 为什么需要自定义 HUD](#section-5)
+    - [2.2 AAuraHUD 成员变量设计](#section-6)
+    - [2.3 蓝图侧的配置流程](#section-7)
+  - [三、FWidgetControllerParams — 四关键变量参数结构体（5.6 核心）](#section-8)
+    - [3.1 设计动机：一键初始化](#section-9)
+    - [3.2 结构体完整代码解析](#section-10)
+    - [3.3 SetWidgetControllerParams — 基类赋值函数](#section-11)
+  - [四、UOverlayWidgetController — 覆盖层专用控制器](#section-12)
+    - [4.1 继承关系](#section-13)
+    - [4.2 为什么用子类而非直接用基类](#section-14)
+  - [五、AAuraHUD 的核心函数详解](#section-15)
+    - [5.1 GetOverlayWidgetController — 单例式获取器](#section-16)
+    - [5.2 InitOverlay — 总装函数](#section-17)
+  - [六、调用链路：从角色到 HUD 的完整串联](#section-18)
+    - [6.1 InitAbilityActorInfo 中的新增代码](#section-19)
+    - [6.2 为什么选择 InitAbilityActorInfo 作为调用点](#section-20)
+    - [6.3 完整调用流程图](#section-21)
+  - [七、多人游戏注意事项（重要！）](#section-22)
+    - [7.1 玩家控制器的有效性](#section-23)
+    - [7.2 check 与 if 的选择原则](#section-24)
+    - [7.3 AuraPlayerController::BeginPlay 的修复](#section-25)
+  - [八、新增/修改文件清单](#section-26)
+  - [九、知识点总结](#section-27)
 
 ---
 
+<a id="section-3"></a>
 ## 一、整体目标：从关卡蓝图迁移到 HUD 系统
 
 在上一阶段，Overlay Widget（健康球 + 法力球）是在**关卡蓝图（Level Blueprint）**中手动创建并添加到视口的。这只是临时测试手段。
@@ -57,8 +60,10 @@
 
 ---
 
+<a id="section-4"></a>
 ## 二、AAuraHUD — 自定义 HUD 类（5.5 核心）
 
+<a id="section-5"></a>
 ### 2.1 为什么需要自定义 HUD
 
 UE 引擎的 GameMode 有默认类配置：
@@ -75,6 +80,7 @@ UE 引擎的 GameMode 有默认类配置：
 - 管理 HUD 相关的生命周期
 - 提供 `GetWorld()` 等上下文
 
+<a id="section-6"></a>
 ### 2.2 AAuraHUD 成员变量设计
 
 ```cpp
@@ -124,6 +130,7 @@ private:
 
 > 💡 `TSubclassOf` 用于在蓝图中选择类，`TObjectPtr` 用于持有运行时实例。两个 `EditAnywhere` 变量让美术/策划在蓝图编辑器中即可切换不同的 Widget 和 Controller。
 
+<a id="section-7"></a>
 ### 2.3 蓝图侧的配置流程
 
 1. 创建蓝图类 `BP_AuraHUD`，父类为 `AAuraHUD`
@@ -134,8 +141,10 @@ private:
 
 ---
 
+<a id="section-8"></a>
 ## 三、FWidgetControllerParams — 四关键变量参数结构体（5.6 核心）
 
+<a id="section-9"></a>
 ### 3.1 设计动机：一键初始化
 
 WidgetController 需要四个关键变量才能工作：
@@ -151,6 +160,7 @@ AttributeSet    → 属性数据
 
 **解决方案**：创建一个结构体 `FWidgetControllerParams`，将四个变量打包，一次传递即可完成初始化。
 
+<a id="section-10"></a>
 ### 3.2 结构体完整代码解析
 
 ```cpp
@@ -200,6 +210,7 @@ struct FWidgetControllerParams
 | `= nullptr`              | 所有指针初始化为空，避免编译器警告         |
 | `BlueprintReadWrite`     | 蓝图可读写，方便调试和配置             |
 
+<a id="section-11"></a>
 ### 3.3 SetWidgetControllerParams — 基类赋值函数
 
 ```cpp
@@ -221,8 +232,10 @@ void UAuraWidgetController::SetWidgetControllerParams(
 
 ---
 
+<a id="section-12"></a>
 ## 四、UOverlayWidgetController — 覆盖层专用控制器
 
+<a id="section-13"></a>
 ### 4.1 继承关系
 
 ```
@@ -242,6 +255,7 @@ class AURA_API UOverlayWidgetController : public UAuraWidgetController
 };
 ```
 
+<a id="section-14"></a>
 ### 4.2 为什么用子类而非直接用基类
 
 | 原因       | 说明                                                  |
@@ -252,8 +266,10 @@ class AURA_API UOverlayWidgetController : public UAuraWidgetController
 
 ---
 
+<a id="section-15"></a>
 ## 五、AAuraHUD 的核心函数详解
 
+<a id="section-16"></a>
 ### 5.1 GetOverlayWidgetController — 单例式获取器
 
 ```cpp
@@ -285,6 +301,7 @@ UOverlayWidgetController* AAuraHUD::GetOverlayWidgetController(
 
 > ⚠️ **为什么用 `NewObject` 而不是 `new`**：UE 的 UObject 系统需要 GC（垃圾回收）管理，`NewObject` 会正确注册到 UE 的对象系统中。`new` 创建的 UObject 不会被 GC 追踪，可能导致内存泄漏或崩溃。
 
+<a id="section-17"></a>
 ### 5.2 InitOverlay — 总装函数
 
 ```cpp
@@ -342,8 +359,10 @@ InitOverlay(PC, PS, ASC, AS)
 
 ---
 
+<a id="section-18"></a>
 ## 六、调用链路：从角色到 HUD 的完整串联
 
+<a id="section-19"></a>
 ### 6.1 InitAbilityActorInfo 中的新增代码
 
 ```cpp
@@ -375,6 +394,7 @@ void AAuraCharacter::InitAbilityActorInfo()
 }
 ```
 
+<a id="section-20"></a>
 ### 6.2 为什么选择 InitAbilityActorInfo 作为调用点
 
 | 条件               | 说明                                                                     |
@@ -383,6 +403,7 @@ void AAuraCharacter::InitAbilityActorInfo()
 | **服务器 + 客户端都覆盖** | `PossessedBy`（服务器）和 `OnRep_PlayerState`（客户端）都会调用此函数                    |
 | **时机正确**         | Controller 已分配、PlayerState 已复制、ASC 已初始化                                |
 
+<a id="section-21"></a>
 ### 6.3 完整调用流程图
 
 ```
@@ -408,8 +429,10 @@ void AAuraCharacter::InitAbilityActorInfo()
 
 ---
 
+<a id="section-22"></a>
 ## 七、多人游戏注意事项（重要！）
 
+<a id="section-23"></a>
 ### 7.1 玩家控制器的有效性
 
 这是本次提交中**最重要的多人游戏知识点**：
@@ -422,6 +445,7 @@ void AAuraCharacter::InitAbilityActorInfo()
 
 > 🔑 **核心规则**：在多人游戏中，每个客户端只能访问自己本地玩家的 PlayerController。其他玩家的角色副本在该客户端上 `GetController()` 返回 `nullptr`。
 
+<a id="section-24"></a>
 ### 7.2 check 与 if 的选择原则
 
 ```cpp
@@ -445,6 +469,7 @@ if (AAuraPlayerController* AuraPlayerController =
 | 变量**在某些合法情况下**可能为 null | ❌                                       | ✅                                                 |
 | 示例                     | `check(AuraPlayerState)` — PS 在所有机器上都存在 | `if (AuraPlayerController)` — PC 在客户端非本地角色上为 null |
 
+<a id="section-25"></a>
 ### 7.3 AuraPlayerController::BeginPlay 的修复
 
 同样的原则也适用于 `BeginPlay` 中的输入子系统：
@@ -465,6 +490,7 @@ if (Subsystem)  // ✅ 只在有效时执行
 
 ---
 
+<a id="section-26"></a>
 ## 八、新增/修改文件清单
 
 | 文件                                                        | 操作     | 说明                                                                |
@@ -480,6 +506,7 @@ if (Subsystem)  // ✅ 只在有效时执行
 
 ---
 
+<a id="section-27"></a>
 ## 九、知识点总结
 
 | 序号  | 知识点                         | 说明                                                            |

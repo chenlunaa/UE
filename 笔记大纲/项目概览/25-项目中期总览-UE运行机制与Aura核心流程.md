@@ -1,9 +1,23 @@
 # 项目中期总览：UE 运行机制与 Aura 核心流程
 
+> 笔记类型：项目概览阶段记录｜项目中期总览
+
 > 本文是项目完成约一半时的阶段性总览。目标不是重复前 24 篇笔记，而是把已经实现的输入、GAS、UI、伤害、AI、近战和远程攻击串成一套完整的运行模型。
 
 ---
 
+## 目录
+
+- [1. 目前已经完成了什么](#section-1)
+- [2. 先建立 UE 项目的整体心智模型](#section-2)
+- [3. 一般 UE 项目从启动到第一帧](#section-3)
+- [5. Aura 玩家生成与 GAS 初始化](#section-5)
+- [10. 完整伤害结算管线](#section-10)
+- [14. 近战与远程攻击完整闭环](#section-14)
+- [18. 网络复制与 RPC 的判断框架](#section-18)
+- [23. 中期知识地图](#section-23)
+
+<a id="section-1"></a>
 ## 1. 目前已经完成了什么
 
 目前的 Aura 已经不再只是“角色能移动、能放技能”的演示，而是具备了动作 RPG 的核心骨架：
@@ -36,6 +50,7 @@ AI 决策 ──> 选择目标 / 激活能力                 └──> UI 展�
 
 ---
 
+<a id="section-2"></a>
 ## 2. 先建立 UE 项目的整体心智模型
 
 一个 UE 游戏不是从某个 `main.cpp` 开始，由开发者手写循环。引擎已经提供启动、世界管理、对象生命周期、输入、物理、网络和渲染循环；项目代码是在引擎规定的扩展点中注册规则。
@@ -59,6 +74,7 @@ AI 决策 ──> 选择目标 / 激活能力                 └──> UI 展�
 
 ---
 
+<a id="section-3"></a>
 ## 3. 一般 UE 项目从启动到第一帧
 
 下面是概念上的启动链。真实引擎内部更复杂，但这个模型足够用于定位项目代码：
@@ -139,6 +155,7 @@ GameMode 蓝图还能继续配置 Default Pawn、PlayerController、PlayerState�
 
 ---
 
+<a id="section-4"></a>
 ## 4. Game Framework 对象各自负责什么
 
 | 对象 | 核心职责 | 服务器 | 所属客户端 | 其他客户端 |
@@ -160,6 +177,7 @@ GameMode 蓝图还能继续配置 Default Pawn、PlayerController、PlayerState�
 
 ---
 
+<a id="section-5"></a>
 ## 5. Aura 玩家生成与 GAS 初始化：最重要的一条时序
 
 ### 5.1 为什么 ASC 放在 PlayerState
@@ -236,6 +254,7 @@ PlayerState 的 ASC 使用 Mixed Replication Mode。概念上：
 
 ---
 
+<a id="section-6"></a>
 ## 6. 输入系统：从按键到技能激活
 
 Aura 使用 Enhanced Input 接收物理输入，再用 GameplayTag 把输入映射到能力。
@@ -315,6 +334,7 @@ PlayerController::PlayerTick
 
 ---
 
+<a id="section-7"></a>
 ## 7. UI：为什么要有 WidgetController
 
 UI 的核心流程是：
@@ -363,6 +383,7 @@ GameplayEffect 应用到 ASC
 
 ---
 
+<a id="section-8"></a>
 ## 8. GAS 中四种核心对象的职责
 
 | 对象 | 它回答的问题 | Aura 中的用途 |
@@ -381,6 +402,7 @@ GameplayEffect 应用到 ASC
 
 ---
 
+<a id="section-9"></a>
 ## 9. 属性初始化、MMC 与 ExecCalc 的区别
 
 项目中存在三类“计算”，它们用途不同。
@@ -434,6 +456,7 @@ ExecCalc 适合一次 Effect 中需要同时读取多项属性、执行复杂规
 
 ---
 
+<a id="section-10"></a>
 ## 10. 完整伤害结算管线
 
 Aura 的伤害不是由 Projectile 直接执行 `Health -= Damage`，而是进入 GAS 管线：
@@ -477,6 +500,7 @@ EffectContext 描述这次 GameplayEffect 的上下文，例如 Instigator、Cau
 
 ---
 
+<a id="section-11"></a>
 ## 11. GameplayTag 是跨系统协议，不只是标签
 
 Aura 中的 Tag 至少承担五种角色：
@@ -495,6 +519,7 @@ Tag 的价值是把“依赖具体类”变成“依赖公共语义”。例如 
 
 ---
 
+<a id="section-12"></a>
 ## 12. 投射物、TargetData 与网络权威
 
 鼠标位置是本地客户端才直接知道的数据，而伤害必须由服务器权威执行。`TargetDataUnderMouse` AbilityTask 解决的就是这个边界：
@@ -530,6 +555,7 @@ Projectile Ability 激活
 
 ---
 
+<a id="section-13"></a>
 ## 13. AI：从感知目标到激活攻击能力
 
 Aura 当前使用经典的 UE AI 技术栈：
@@ -573,6 +599,7 @@ Behavior Tree 不应该自己实现伤害公式。它负责“现在该做什么
 
 ---
 
+<a id="section-14"></a>
 ## 14. 近战与远程攻击完整闭环
 
 ### 14.1 共同前半段
@@ -618,6 +645,7 @@ Weapon AnimBP 负责武器骨骼的表现同步；GameplayAbility 和 Projectile
 
 ---
 
+<a id="section-15"></a>
 ## 15. C++、蓝图与数据资产应如何分工
 
 | 工具 | 最适合承担 | Aura 中的例子 |
@@ -640,6 +668,7 @@ Weapon AnimBP 负责武器骨骼的表现同步；GameplayAbility 和 Projectile
 
 ---
 
+<a id="section-16"></a>
 ## 16. UE 对象生命周期：代码为什么不能随便放
 
 | 阶段 | 适合做什么 | 常见风险 |
@@ -656,6 +685,7 @@ Weapon AnimBP 负责武器骨骼的表现同步；GameplayAbility 和 Projectile
 
 ---
 
+<a id="section-17"></a>
 ## 17. 一般 UE 项目每一帧如何运行
 
 概念上的一帧包括：
@@ -688,6 +718,7 @@ Aura 中并非所有逻辑都应写进 Tick：
 
 ---
 
+<a id="section-18"></a>
 ## 18. 网络复制与 RPC 的判断框架
 
 遇到多人问题时，按以下顺序判断：
@@ -708,6 +739,7 @@ Aura 中并非所有逻辑都应写进 Tick：
 
 ---
 
+<a id="section-19"></a>
 ## 19. 如何从源码读懂一次功能
 
 不要只沿着文件夹顺序阅读，应该沿“事件链”阅读。例如分析一次火球攻击：
@@ -740,6 +772,7 @@ Aura 中并非所有逻辑都应写进 Tick：
 
 ---
 
+<a id="section-20"></a>
 ## 20. 当前架构做得好的地方
 
 1. **ASC 放在 PlayerState**：为多人、重生和持久玩家状态打下了正确基础。
@@ -753,6 +786,7 @@ Aura 中并非所有逻辑都应写进 Tick：
 
 ---
 
+<a id="section-21"></a>
 ## 21. 当前需要关注的技术债
 
 这些不是“项目做错了”，而是从教学项目继续走向完整项目时值得逐步处理的边界：
@@ -774,6 +808,7 @@ Aura 中并非所有逻辑都应写进 Tick：
 
 ---
 
+<a id="section-22"></a>
 ## 22. 下一阶段建议
 
 ### 22.1 先补齐完整 Gameplay Loop
@@ -817,6 +852,7 @@ Aura 中并非所有逻辑都应写进 Tick：
 
 ---
 
+<a id="section-23"></a>
 ## 23. 中期知识地图
 
 ```text
@@ -848,6 +884,7 @@ UE Engine
 
 ---
 
+<a id="section-24"></a>
 ## 24. 一句话总结整个项目
 
 Aura 的核心不是某个火球、血条或行为树节点，而是：**UE 的 Game Framework 负责对象和生命周期，Enhanced Input 与 AI 产生意图，GAS 把意图变成可复制的能力、效果与属性变化，GameplayTag 充当跨系统协议，WidgetController、动画和特效再把权威游戏状态转化为玩家能看到的反馈。**

@@ -1,9 +1,20 @@
 # 第 19 章：战斗收尾——GameplayCue、召唤系统与性能排查
 
+> 笔记类型：项目章节记录｜第 19 章
+
 > 本章围绕“让战斗像一个完整游戏”展开：补齐脚步、挥砍、受击、死亡和投射物音效；用 GameplayCue 将服务器执行的命中特效同步到客户端；创建恶魔敌人和萨满召唤能力；增加召唤数量控制、攻击类型分流、投射物抛射角参数；最后通过时间轴缓动、日志、帧率和粒子生命周期排查重复生成与内存泄漏。
 
 ---
 
+## 目录
+
+- [1. 本章完成的功能地图](#section-1)
+- [4. GameplayCue：同步服务器命中的装饰效果](#section-4)
+- [6. UAuraSummonAbility：召唤位置算法](#section-6)
+- [10. 源码阅读痕迹与正式逻辑](#section-10)
+- [12. 性能排查和内存泄漏](#section-12)
+
+<a id="section-1"></a>
 ## 1. 本章完成的功能地图
 
 ~~~text
@@ -32,6 +43,7 @@
 
 本章主线是：表现效果不能破坏网络权威；蓝图流程不能依赖隐含状态；大量敌人和粒子必须有生命周期与数量预算。
 
+<a id="section-2"></a>
 ## 2. 音效：动画事件还是玩法事件
 
 与动作时间轴强相关的声音应放在 Animation 或 Montage Notify 中：
@@ -60,6 +72,7 @@
 
 复合音效可以把多个样本放入数组，通过音量和音高随机化减少重复感；大量敌人同时移动时应制作更安静的脚步变体。
 
+<a id="section-3"></a>
 ## 3. 目标血效：CombatInterface 返回 Niagara
 
 不同敌人可能有不同血液颜色，因此血效从被击目标获取，而不是攻击能力硬编码。
@@ -94,6 +107,7 @@ For Each Overlapping Target
 
 将 CombatSocketLocation 提升为变量，音效和 Niagara 共用同一位置，避免重复调用接口和杂乱线路。
 
+<a id="section-4"></a>
 ## 4. GameplayCue：同步服务器命中的装饰效果
 
 AI 敌人的 ASC 通常没有真实玩家拥有。服务器 Ability 中直接执行 Play Sound 或 Spawn Niagara，只会发生在服务器端，客户端看不到。
@@ -131,6 +145,7 @@ GameplayCue.MeleeImpact
 
 Location 不会凭空出现，必须手动设置。Cue 负责本地表现，伤害仍由服务器 Damage GE/ExecCalc 完成。
 
+<a id="section-5"></a>
 ## 5. 恶魔敌人和远程 Ability 复用
 
 恶魔继续从 Enemy Base 创建子蓝图，复用 Mesh、AnimBP、攻击蒙太奇、Motion Warping、Tagged Montage、Hit React、死亡和溶解流程。
@@ -144,6 +159,7 @@ GA_RangedAttack：通用生成流程
 
 否则父 Ability 中硬编码的弹弓石会被所有远程敌人继承。
 
+<a id="section-6"></a>
 ## 6. UAuraSummonAbility：召唤位置算法
 
 源码增加 UAuraSummonAbility，关键配置为：
@@ -176,6 +192,7 @@ FVector ChosenSpawnLocation =
 
 GetRandomMinionClass 从 MinionClasses 随机返回一个 TSubclassOf<APawn>。必须先检查数组非空，否则可能出现 RandRange(0, -1) 和越界。
 
+<a id="section-7"></a>
 ## 7. 召唤蓝图流程
 
 ~~~text
@@ -194,6 +211,7 @@ Get Spawn Locations
 
 Ground Summon Niagara 的生命周期要和召唤延迟匹配。调试球体和调试打印在验证完成后应删除或放进 Debug 开关。
 
+<a id="section-8"></a>
 ## 8. 小兵数量和行为树分流
 
 召唤 Ability 应使用：
@@ -230,6 +248,7 @@ GetMinionCount()
       False -> TryActivateAbilitiesByTag(AttackTag)
 ~~~
 
+<a id="section-9"></a>
 ## 9. Pitch Override 参数化
 
 远程 Ability 可将投射物生成函数改成：
@@ -246,6 +265,7 @@ void SpawnProjectile(
 
 萨满火球通常关闭覆盖，弹弓石块可以设置正的 Pitch。不要把角度写死在所有远程敌人的父类中，应把变量暴露给子 Ability。
 
+<a id="section-10"></a>
 ## 10. 源码阅读痕迹与正式逻辑
 
 本章源码中有几类内容是为了学习和排错，不是最终功能：
@@ -270,6 +290,7 @@ UE_LOG(LogTemp, Warning, TEXT("Spawned %s"), *GetName());
 
 ExecCalc 遍历所有 DamageType 时，某个 GE 没有设置某种伤害 Tag 可能是合法情况，应默认按 0 处理，不要把可选缺失打印成错误。
 
+<a id="section-11"></a>
 ## 11. 多人和投射物重要函数
 
 SpawnActorDeferred 先生成投射物，再在 FinishSpawning 前写入 DamageEffectSpec。
@@ -292,6 +313,7 @@ OtherActor 有效？
 
 客户端负责表现，服务器负责应用伤害和销毁投射物；bHit 用于避免命中回调和 Destroyed 回调重复播放效果。
 
+<a id="section-12"></a>
 ## 12. 性能排查和内存泄漏
 
 正常负载通常是 FPS 降低后稳定在新的基准线；内存泄漏则是在相同操作持续执行时 FPS 不断下降、对象不断增加。
@@ -323,6 +345,7 @@ Niagara Emitter 中出现无限符号时，应检查 Particle State 的 Kill Par
 - UE Insights：定位 Tick、生成和销毁开销；
 - 单个敌人与多个敌人的对照测试。
 
+<a id="section-13"></a>
 ## 13. 蓝图、C++ 与 GAS 的职责边界
 
 | 任务 | 蓝图 | C++/GAS |
@@ -337,6 +360,7 @@ Niagara Emitter 中出现无限符号时，应检查 Particle State 的 Kill Par
 
 蓝图负责资产组合和流程组合，C++ 负责类型安全、网络权威和通用算法。
 
+<a id="section-14"></a>
 ## 14. 回归测试清单
 
 - [ ] 脚步和攻击音效与动画帧一致；
@@ -354,6 +378,7 @@ Niagara Emitter 中出现无限符号时，应检查 Particle State 的 Kill Par
 - [ ] Niagara 粒子在生命周期结束后销毁；
 - [ ] 临时日志、断点和调试球体已移除或关闭。
 
+<a id="section-15"></a>
 ## 15. 本章总结
 
 ~~~text
